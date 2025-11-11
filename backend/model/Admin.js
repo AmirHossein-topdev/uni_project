@@ -1,83 +1,93 @@
 const mongoose = require("mongoose");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const { ObjectId } = mongoose.Schema.Types;
 
-const adminSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Please provide your name"],
+      trim: true,
+      maxLength: 100,
     },
     image: {
       type: String,
-      required: false,
+      default: null,
     },
     address: {
       type: String,
-      required: false,
+      default: null,
     },
     country: {
       type: String,
-      required: false,
+      default: null,
     },
     city: {
       type: String,
-      required: false,
+      default: null,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Please provide your email"],
       unique: true,
       lowercase: true,
+      trim: true,
     },
     phone: {
       type: String,
-      required: false,
+      default: null,
     },
     status: {
       type: String,
-      required: false,
-      default: "Active",
       enum: ["Active", "Inactive"],
+      default: "Active",
     },
     password: {
       type: String,
-      required: false,
-      default: bcrypt.hashSync("12345678"),
+      required: [true, "Please provide a password"],
+      minlength: 6,
     },
     role: {
-      type: String,
+      type: ObjectId,
+      ref: "Role",
       required: true,
-      default: "Admin",
-      enum: [
-        "Admin",
-        "Super Admin",
-        "Manager",
-        "CEO",
-      ],
     },
     joiningDate: {
       type: Date,
-      required: false,
+      default: Date.now,
     },
     confirmationToken: String,
     confirmationTokenExpires: Date,
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
-// generateConfirmationToken
-adminSchema.methods.generateConfirmationToken = function () {
+// هش کردن پسورد قبل از ذخیره
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// متد بررسی پسورد
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// تولید توکن تایید ایمیل
+userSchema.methods.generateConfirmationToken = function () {
   const token = crypto.randomBytes(32).toString("hex");
   this.confirmationToken = token;
   const date = new Date();
-  date.setDate(date.getDate() + 1);
+  date.setDate(date.getDate() + 1); // اعتبار 24 ساعت
   this.confirmationTokenExpires = date;
   return token;
 };
 
-const Admin = mongoose.model("Admin", adminSchema);
+const User = mongoose.model("User", userSchema);
 
-module.exports = Admin;
+module.exports = User;

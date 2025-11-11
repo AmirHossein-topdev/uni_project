@@ -1,72 +1,51 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
-const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const { ObjectId } = mongoose.Schema.Types;
 
 const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please provide a name"],
+      required: [true, "Please provide your name"],
       trim: true,
       minLength: [3, "Name must be at least 3 characters."],
       maxLength: [100, "Name is too large"],
     },
     email: {
       type: String,
-      validate: [validator.isEmail, "Provide a valid Email"],
+      required: [true, "Email address is required"],
+      unique: true,
       trim: true,
       lowercase: true,
-      unique: true,
-      required: [true, "Email address is required"],
     },
     password: {
       type: String,
-      required: [false, "Password is required"],
-      minLength: [6, "Must be at least 6 character"],
+      required: [true, "Password is required"],
+      minLength: 6,
     },
-
     role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      type: ObjectId,
+      ref: "Role",
+      required: true,
     },
-
     contactNumber: {
       type: String,
-      validate: [
-        validator.isMobilePhone,
-        "Please provide a valid contact number",
-      ],
-    },
-
-    shippingAddress: String,
-
-    imageURL: {
-      type: String,
-      validate: [validator.isURL, "Please provide a valid url"],
-    },
-    phone: {
-      type: String,
-      required: false,
+      trim: true,
     },
     address: {
       type: String,
-      required: false,
     },
-    bio: {
+    profileImage: {
       type: String,
-      required: false,
     },
     status: {
       type: String,
-      default: "inactive",
       enum: ["active", "inactive", "blocked"],
+      default: "inactive",
     },
-    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reviews" }],
     confirmationToken: String,
     confirmationTokenExpires: Date,
-
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -76,36 +55,28 @@ const userSchema = mongoose.Schema(
   }
 );
 
-userSchema.pre("save", function (next) {
-  if (!this.isModified("password")) {
-    //  only run if password is modified, otherwise it will change every time we save the user!
-    return next();
-  }
-  const password = this.password;
-  const hashedPassword = bcrypt.hashSync(password);
-  this.password = hashedPassword;
-
+// هش کردن پسورد قبل از ذخیره
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
   next();
 });
-// comparePassword
-userSchema.methods.comparePassword = function (password, hash) {
-  const isPasswordValid = bcrypt.compareSync(password, hash);
-  return isPasswordValid;
+
+// بررسی پسورد
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
-// generateConfirmationToken
+
+// تولید توکن تایید ایمیل
 userSchema.methods.generateConfirmationToken = function () {
   const token = crypto.randomBytes(32).toString("hex");
-
   this.confirmationToken = token;
-
   const date = new Date();
-
-  date.setDate(date.getDate() + 1);
+  date.setDate(date.getDate() + 1); // 24 ساعت اعتبار
   this.confirmationTokenExpires = date;
-
   return token;
 };
 
 const User = mongoose.model("User", userSchema);
-
 module.exports = User;
