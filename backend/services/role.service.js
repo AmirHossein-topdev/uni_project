@@ -1,47 +1,79 @@
-// Role Service (backend/services/role.service.js)
-const ApiError = require("../errors/api-error");
 const Role = require("../model/Role");
 
-// ایجاد یک نقش جدید
-exports.addRoleService = async (data) => {
-  const role = await Role.create(data);
-  return role;
-};
-
-// ایجاد چند نقش همزمان
-exports.addAllRolesService = async (data) => {
-  await Role.deleteMany();
-  const roles = await Role.insertMany(data);
-  return roles;
-};
-
-// دریافت نقش‌های فعال
-exports.getActiveRolesService = async () => {
-  const roles = await Role.find({ status: "active" }).populate("users");
-  return roles;
-};
-
-// حذف نقش
-exports.deleteRoleService = async (id) => {
-  const role = await Role.findByIdAndDelete(id);
-  return role;
-};
-
-// ویرایش نقش
-exports.updateRoleService = async (id, payload) => {
-  const isExist = await Role.findById(id);
-  if (!isExist) {
-    throw new ApiError(404, "Role not found!");
+class RoleService {
+  // ایجاد نقش جدید
+  async createRole(data) {
+    try {
+      const role = new Role(data);
+      await role.save();
+      return role;
+    } catch (err) {
+      if (err.code === 11000 && err.keyValue.name) {
+        throw new Error("Role name already exists");
+      }
+      throw err;
+    }
   }
-  const result = await Role.findByIdAndUpdate(id, payload, { new: true });
-  return result;
-};
 
-// دریافت یک نقش خاص
-exports.getSingleRoleService = async (id) => {
-  const result = await Role.findById(id).populate("users");
-  if (!result) {
-    throw new ApiError(404, "Role not found!");
+  // دریافت نقش با آی‌دی
+  async getRoleById(id) {
+    const role = await Role.findById(id).populate("users");
+    if (!role) throw new Error("Role not found");
+    return role;
   }
-  return result;
-};
+
+  // دریافت نقش با نام
+  async getRoleByName(name) {
+    const role = await Role.findOne({ name }).populate("users");
+    if (!role) throw new Error("Role not found");
+    return role;
+  }
+
+  // آپدیت نقش
+  async updateRole(id, data) {
+    try {
+      const updatedRole = await Role.findByIdAndUpdate(id, data, { new: true });
+      if (!updatedRole) throw new Error("Role not found");
+      return updatedRole;
+    } catch (err) {
+      if (err.code === 11000 && err.keyValue.name) {
+        throw new Error("Role name already exists");
+      }
+      throw err;
+    }
+  }
+
+  // حذف نقش
+  async deleteRole(id) {
+    const deletedRole = await Role.findByIdAndDelete(id);
+    if (!deletedRole) throw new Error("Role not found");
+    return deletedRole;
+  }
+
+  // تغییر وضعیت نقش
+  async changeRoleStatus(id, status) {
+    if (!["active", "inactive"].includes(status)) {
+      throw new Error("Invalid status");
+    }
+    const role = await Role.findByIdAndUpdate(id, { status }, { new: true });
+    if (!role) throw new Error("Role not found");
+    return role;
+  }
+
+  // لیست نقش‌ها با فیلتر و pagination
+  async listRoles({ page = 1, limit = 10, status }) {
+    const query = {};
+    if (status) query.status = status;
+
+    const roles = await Role.find(query)
+      .populate("users")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Role.countDocuments(query);
+    return { roles, total, page, limit };
+  }
+}
+
+module.exports = new RoleService();

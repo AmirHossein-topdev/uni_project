@@ -1,65 +1,84 @@
+// backend/service/contract.service.js
 const Contract = require("../model/Contract");
-const User = require("../model/User");
-const Property = require("../model/Property");
 
-// ایجاد قرارداد جدید
-exports.createContractService = async (data) => {
-  const { tenant, property, rentAmount, deposit, tax } = data;
-
-  // محاسبه totalAmount
-  const totalAmount = rentAmount + (deposit || 0) + (tax || 0);
-  const contract = await Contract.create({ ...data, totalAmount });
-
-  // آپدیت وضعیت ملک به "در حال اجرا" یا مشابه
-  await Property.findByIdAndUpdate(property, { status: "در حال اجرا" });
-
-  return contract;
-};
-
-// دریافت همه قراردادها
-exports.getAllContractsService = async () => {
-  const contracts = await Contract.find()
-    .populate("tenant", "name email phone")
-    .populate("property", "title address city country");
-  return contracts;
-};
-
-// دریافت یک قرارداد خاص
-exports.getSingleContractService = async (id) => {
-  const contract = await Contract.findById(id)
-    .populate("tenant", "name email phone")
-    .populate("property", "title address city country");
-  return contract;
-};
-
-// بروزرسانی وضعیت قرارداد
-exports.updateContractStatusService = async (id, newStatus) => {
-  const contract = await Contract.findByIdAndUpdate(
-    id,
-    { status: newStatus },
-    { new: true }
-  );
-  return contract;
-};
-
-// افزودن اسناد یا یادداشت‌ها
-exports.addDocumentsOrNotesService = async (id, docsOrNotes) => {
-  const contract = await Contract.findById(id);
-  if (!contract) throw new Error("Contract not found");
-
-  if (docsOrNotes.documents) {
-    contract.documents.push(...docsOrNotes.documents);
-  }
-  if (docsOrNotes.notes) {
-    contract.notes = docsOrNotes.notes;
+class ContractService {
+  // ایجاد قرارداد جدید
+  async createContract(data) {
+    try {
+      const contract = new Contract(data);
+      await contract.save();
+      return contract;
+    } catch (err) {
+      throw err;
+    }
   }
 
-  await contract.save();
-  return contract;
-};
+  // دریافت قرارداد با آی‌دی
+  async getContractById(id) {
+    const contract = await Contract.findById(id)
+      .populate("tenant")
+      .populate("property");
+    if (!contract) throw new Error("Contract not found");
+    return contract;
+  }
 
-// حذف قرارداد
-exports.deleteContractService = async (id) => {
-  const contract = await Contract.findByIdAndDelete(id);
-  return contract;
-};
+  // آپدیت قرارداد
+  async updateContract(id, data) {
+    try {
+      const updatedContract = await Contract.findByIdAndUpdate(id, data, {
+        new: true,
+      });
+      if (!updatedContract) throw new Error("Contract not found");
+      return updatedContract;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  // حذف قرارداد
+  async deleteContract(id) {
+    const deletedContract = await Contract.findByIdAndDelete(id);
+    if (!deletedContract) throw new Error("Contract not found");
+    return deletedContract;
+  }
+
+  // تغییر وضعیت قرارداد
+  async changeContractStatus(id, status) {
+    const allowedStatuses = [
+      "در انتظار",
+      "در حال اجرا",
+      "تکمیل‌شده",
+      "لغو شده",
+    ];
+    if (!allowedStatuses.includes(status)) {
+      throw new Error("Invalid status");
+    }
+    const contract = await Contract.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+    if (!contract) throw new Error("Contract not found");
+    return contract;
+  }
+
+  // لیست قراردادها با فیلتر و pagination
+  async listContracts({ page = 1, limit = 10, status, tenant, property }) {
+    const query = {};
+    if (status) query.status = status;
+    if (tenant) query.tenant = tenant;
+    if (property) query.property = property;
+
+    const contracts = await Contract.find(query)
+      .populate("tenant")
+      .populate("property")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Contract.countDocuments(query);
+    return { contracts, total, page, limit };
+  }
+}
+
+module.exports = new ContractService();

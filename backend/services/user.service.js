@@ -1,130 +1,122 @@
-const User = require("../model/User");
-const Role = require("../model/Role");
-const ApiError = require("../errors/api-error");
+// backend/service/user.service.js
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
+const User = require("../model/User");
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
-const JWT_EXPIRES = process.env.JWT_EXPIRES || "7d";
+class UserService {
+  // ایجاد کاربر جدید
+  async createUser(data) {
+    try {
+      const user = new User(data);
+      await user.save();
+      return user;
+    } catch (err) {
+      if (err.code === 11000 && err.keyValue.email) {
+        throw new Error("Email already exists");
+      }
+      throw err;
+    }
+  }
 
-// ثبت‌نام کاربر
-exports.registerUserService = async (data) => {
-  const existingUser = await User.findOne({ email: data.email });
-  if (existingUser) throw new ApiError(400, "Email already exists");
+  // پیدا کردن کاربر بر اساس ایمیل
+  async getUserByEmail(email) {
+    const user = await User.findOne({ email }).populate("role");
+    if (!user) throw new Error("User not found");
+    return user;
+  }
 
-  const user = await User.create(data);
-  return user;
-};
+  // پیدا کردن کاربر بر اساس آی‌دی
+  async getUserById(id) {
+    const user = await User.findById(id).populate("role");
+    if (!user) throw new Error("User not found");
+    return user;
+  }
 
-// ورود کاربر
-exports.loginUserService = async (email, password) => {
-  const user = await User.findOne({ email }).populate("role");
-  if (!user) throw new ApiError(404, "User not found");
+  // آپدیت اطلاعات کاربر
+  async updateUser(id, data) {
+    try {
+      if (data.password) {
+        const salt = await bcrypt.genSalt(10);
+        data.password = await bcrypt.hash(data.password, salt);
+      }
+      const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+      if (!updatedUser) throw new Error("User not found");
+      return updatedUser;
+    } catch (err) {
+      throw err;
+    }
+  }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new ApiError(401, "Invalid credentials");
+  // حذف کاربر
+  async deleteUser(id) {
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) throw new Error("User not found");
+    return deletedUser;
+  }
 
-  const token = jwt.sign({ id: user._id, role: user.role._id }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES,
-  });
-  return { user, token };
-};
+  // بررسی پسورد
+  async verifyPassword(user, password) {
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) throw new Error("Invalid password");
+    return true;
+  }
 
-// تغییر پسورد
-exports.changePasswordService = async (userId, oldPassword, newPassword) => {
-  const user = await User.findById(userId);
-  if (!user) throw new ApiError(404, "User not found");
+  // تولید توکن تایید ایمیل
+  async generateConfirmationToken(user) {
+    const token = crypto.randomBytes(32).toString("hex");
+    user.confirmationToken = token;
+    const date = new Date();
+    date.setDate(date.getDate() + 1); // 24 ساعت اعتبار
+    user.confirmationTokenExpires = date;
+    await user.save();
+    return token;
+  }
 
-  const isMatch = await bcrypt.compare(oldPassword, user.password);
-  if (!isMatch) throw new ApiError(401, "Old password is incorrect");
+  // پیدا کردن کاربر با توکن تایید ایمیل
+  async getUserByConfirmationToken(token) {
+    const user = await User.findOne({
+      confirmationToken: token,
+      confirmationTokenExpires: { $gt: new Date() },
+    });
+    if (!user) throw new Error("Invalid or expired token");
+    return user;
+  }
 
-  user.password = newPassword;
-  await user.save();
-  return { message: "Password updated successfully" };
-};
+  // ریست کردن پسورد
+  async resetPassword(user, newPassword) {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+    return user;
+  }
 
-// افزودن کاربر توسط Admin/Manager
-exports.addUserService = async (data) => {
-  const role = await Role.findById(data.role);
-  if (!role) throw new ApiError(400, "Role not found");
-  const user = await User.create(data);
-  return user;
-};
+  // تغییر وضعیت کاربر (active, inactive, blocked)
+  async changeUserStatus(id, status) {
+    if (!["active", "inactive", "blocked"].includes(status)) {
+      throw new Error("Invalid status");
+    }
+    const user = await User.findByIdAndUpdate(id, { status }, { new: true });
+    if (!user) throw new Error("User not found");
+    return user;
+  }
 
-// دریافت همه کاربران
-exports.getAllUsersService = async () => {
-  return await User.find().populate("role");
-};
+  // لیست کاربران با فیلتر و pagination
+  async listUsers({ page = 1, limit = 10, status, role }) {
+    const query = {};
+    if (status) query.status = status;
+    if (role) query.role = role;
 
-// دریافت یک کاربر
-exports.getUserByIdService = async (id) => {
-  const user = await User.findById(id).populate("role");
-  if (!user) throw new ApiError(404, "User not found");
-  return user;
-};
+    const users = await User.find(query)
+      .populate("role")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
-// ویرایش کاربر
-exports.updateUserService = async (id, data) => {
-  const user = await User.findByIdAndUpdate(id, data, { new: true }).populate(
-    "role"
-  );
-  if (!user) throw new ApiError(404, "User not found");
-  return user;
-};
+    const total = await User.countDocuments(query);
+    return { users, total, page, limit };
+  }
+}
 
-// تغییر وضعیت کاربر
-exports.updateUserStatusService = async (id, status) => {
-  const user = await User.findByIdAndUpdate(id, { status }, { new: true });
-  if (!user) throw new ApiError(404, "User not found");
-  return user;
-};
-
-// حذف کاربر
-exports.deleteUserService = async (id) => {
-  const user = await User.findByIdAndDelete(id);
-  if (!user) throw new ApiError(404, "User not found");
-  return user;
-};
-
-// فراموشی پسورد
-exports.forgetPasswordService = async (email) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new ApiError(404, "User not found");
-
-  const token = crypto.randomBytes(32).toString("hex");
-  user.passwordResetToken = token;
-  user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 ساعت
-  await user.save();
-  return token;
-};
-
-// ریست پسورد با توکن
-exports.resetPasswordService = async (token, newPassword) => {
-  const user = await User.findOne({
-    passwordResetToken: token,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-  if (!user) throw new ApiError(400, "Invalid or expired token");
-
-  user.password = newPassword;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-  await user.save();
-  return { message: "Password reset successfully" };
-};
-
-// تایید ایمیل
-exports.confirmEmailService = async (token) => {
-  const user = await User.findOne({
-    confirmationToken: token,
-    confirmationTokenExpires: { $gt: Date.now() },
-  });
-  if (!user) throw new ApiError(400, "Invalid or expired token");
-
-  user.status = "active";
-  user.confirmationToken = undefined;
-  user.confirmationTokenExpires = undefined;
-  await user.save();
-  return { message: "Email confirmed successfully" };
-};
+module.exports = new UserService();

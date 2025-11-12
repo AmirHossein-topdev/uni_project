@@ -1,88 +1,86 @@
-const Owner = require("../model/Owner");
-const {
-  createOwnerService,
-  addAllOwnerService,
-  getAllOwnerService,
-  getActiveOwnerService,
-  getSingleOwnerService,
-  updateOwnerService,
-  deleteOwnerService,
-} = require("../services/owner.service");
+// backend/controller/owner.controller.js
+const OwnerService = require("../services/owner.service");
 
-// ایجاد مالک جدید
-exports.addOwner = async (req, res, next) => {
-  try {
-    const owner = await createOwnerService(req.body);
-    res
-      .status(200)
-      .json({ success: true, message: "Owner created", data: owner });
-  } catch (err) {
-    next(err);
+class OwnerController {
+  // ایجاد مالک جدید
+  async createOwner(req, res) {
+    try {
+      const owner = await OwnerService.createOwner(req.body);
+      res.status(201).json({ success: true, data: owner });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// ایجاد چند مالک
-exports.addAllOwner = async (req, res, next) => {
-  try {
-    const owners = await addAllOwnerService(req.body);
-    res
-      .status(200)
-      .json({ success: true, message: "All owners added", data: owners });
-  } catch (err) {
-    next(err);
+  // دریافت مالک با آی‌دی
+  async getOwnerById(req, res) {
+    try {
+      const owner = await OwnerService.getOwnerById(req.params.id);
+      res.json({ success: true, data: owner });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
   }
-};
 
-// دریافت همه مالکان
-exports.getAllOwners = async (req, res, next) => {
-  try {
-    const owners = await getAllOwnerService();
-    res.status(200).json({ success: true, data: owners });
-  } catch (err) {
-    next(err);
+  // دریافت مالک با ایمیل
+  async getOwnerByEmail(req, res) {
+    try {
+      const owner = await OwnerService.getOwnerByEmail(req.params.email);
+      res.json({ success: true, data: owner });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
   }
-};
 
-// دریافت مالکان فعال
-exports.getActiveOwners = async (req, res, next) => {
-  try {
-    const owners = await getActiveOwnerService();
-    res.status(200).json({ success: true, data: owners });
-  } catch (err) {
-    next(err);
+  // آپدیت مالک
+  async updateOwner(req, res) {
+    try {
+      const updatedOwner = await OwnerService.updateOwner(
+        req.params.id,
+        req.body
+      );
+      res.json({ success: true, data: updatedOwner });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// دریافت تک مالک
-exports.getOwnerById = async (req, res, next) => {
-  try {
-    const owner = await getSingleOwnerService(req.params.id);
-    res.status(200).json({ success: true, data: owner });
-  } catch (err) {
-    next(err);
+  // حذف مالک
+  async deleteOwner(req, res) {
+    try {
+      const deletedOwner = await OwnerService.deleteOwner(req.params.id);
+      res.json({ success: true, data: deletedOwner });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
   }
-};
 
-// بروزرسانی مالک
-exports.updateOwner = async (req, res, next) => {
-  try {
-    const owner = await updateOwnerService(req.params.id, req.body);
-    res
-      .status(200)
-      .json({ success: true, message: "Owner updated", data: owner });
-  } catch (err) {
-    next(err);
+  // تغییر وضعیت مالک
+  async changeOwnerStatus(req, res) {
+    try {
+      const { status } = req.body;
+      const owner = await OwnerService.changeOwnerStatus(req.params.id, status);
+      res.json({ success: true, data: owner });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// حذف مالک
-exports.deleteOwner = async (req, res, next) => {
-  try {
-    const owner = await deleteOwnerService(req.params.id);
-    res
-      .status(200)
-      .json({ success: true, message: "Owner deleted", data: owner });
-  } catch (err) {
-    next(err);
+  // لیست مالکان با فیلتر و pagination
+  async listOwners(req, res) {
+    try {
+      const { page, limit, status, type } = req.query;
+      const result = await OwnerService.listOwners({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        status,
+        type,
+      });
+      res.json({ success: true, data: result });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
+}
+
+module.exports = new OwnerController();

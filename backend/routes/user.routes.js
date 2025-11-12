@@ -1,52 +1,83 @@
+// backend/routes/user.routes.js
 const express = require("express");
 const router = express.Router();
-const {
-  registerUser,
-  loginUser,
-  updateUser,
-  changePassword,
-  addUser,
-  getAllUsers,
-  deleteUser,
-  getUserById,
-  forgetPassword,
-  confirmEmail,
-  resetPassword,
-  updateUserStatus,
-} = require("../controller/user.controller");
+const UserController = require("../controller/user.controller");
 
-// ثبت‌نام کاربر
-router.post("/register", registerUser);
+// Middleware placeholder برای احراز هویت و رول
+const authMiddleware = (req, res, next) => {
+  // اینجا می‌تونی JWT یا session validation بذاری
+  // req.user = decoded user
+  next();
+};
 
-// ورود کاربر
-router.post("/login", loginUser);
+const roleMiddleware = (roles) => (req, res, next) => {
+  // اینجا چک کن که req.user.role در roles باشه
+  // اگر نبود:
+  // return res.status(403).json({ success: false, message: "Forbidden" });
+  next();
+};
 
-// تغییر پسورد کاربر
-router.patch("/change-password", changePassword);
+// ایجاد کاربر
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  UserController.createUser
+);
 
-// افزودن کاربر توسط Admin/Manager
-router.post("/add", addUser);
+// دریافت کاربر با ایمیل
+router.get("/email/:email", authMiddleware, UserController.getUserByEmail);
 
-// دریافت همه کاربران
-router.get("/all", getAllUsers);
+// دریافت کاربر با آی‌دی
+router.get("/:id", authMiddleware, UserController.getUserById);
 
-// دریافت یک کاربر خاص
-router.get("/get/:id", getUserById);
-
-// ویرایش اطلاعات کاربر
-router.patch("/update/:id", updateUser);
-
-// تغییر وضعیت فعال/غیرفعال کاربر
-router.patch("/update-status/:id", updateUserStatus);
-
-// فراموشی پسورد
-router.patch("/forget-password", forgetPassword);
-
-// تایید ایمیل / تایید درخواست ریست پسورد
-router.patch("/confirm-email", confirmEmail);
-router.patch("/reset-password", resetPassword);
+// آپدیت کاربر
+router.put(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  UserController.updateUser
+);
 
 // حذف کاربر
-router.delete("/:id", deleteUser);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  UserController.deleteUser
+);
+
+// بررسی پسورد
+router.post(
+  "/:id/verify-password",
+  authMiddleware,
+  UserController.verifyPassword
+);
+
+// تولید توکن تایید ایمیل
+router.post(
+  "/:id/generate-confirmation-token",
+  authMiddleware,
+  UserController.generateConfirmationToken
+);
+
+// ریست پسورد با توکن
+router.post("/reset-password", UserController.resetPassword);
+
+// تغییر وضعیت کاربر
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  UserController.changeUserStatus
+);
+
+// لیست کاربران با فیلتر و pagination
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  UserController.listUsers
+);
 
 module.exports = router;

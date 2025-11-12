@@ -1,52 +1,50 @@
 const express = require("express");
 const router = express.Router();
 const {
-  registerUser,
-  loginUser,
-  updateUser,
+  registerAdmin,
+  loginAdmin,
+  updateStaff,
   changePassword,
-  addUser,
-  getAllUsers,
-  deleteUser,
-  getUserById,
+  addStaff,
+  getAllStaff,
+  deleteStaff,
+  getStaffById,
   forgetPassword,
-  confirmEmail,
-  resetPassword,
-  updateUserStatus,
-} = require("../controller/user.controller");
+  confirmAdminEmail,
+  confirmAdminForgetPass,
+} = require("../controller/admin.controller");
 
-// ثبت‌نام کاربر
-router.post("/register", registerUser);
+//register a staff
+router.post("/register", registerAdmin);
 
-// ورود کاربر
-router.post("/login", loginUser);
+//login a admin
+router.post("/login", loginAdmin);
 
-// تغییر پسورد کاربر
+//login a admin
 router.patch("/change-password", changePassword);
 
-// افزودن کاربر توسط Admin/Manager
-router.post("/add", addUser);
+//login a admin
+router.post("/add", addStaff);
 
-// دریافت همه کاربران
-router.get("/all", getAllUsers);
+//login a admin
+router.get("/all", getAllStaff);
 
-// دریافت یک کاربر خاص
-router.get("/get/:id", getUserById);
-
-// ویرایش اطلاعات کاربر
-router.patch("/update/:id", updateUser);
-
-// تغییر وضعیت فعال/غیرفعال کاربر
-router.patch("/update-status/:id", updateUserStatus);
-
-// فراموشی پسورد
+//forget-password
 router.patch("/forget-password", forgetPassword);
 
-// تایید ایمیل / تایید درخواست ریست پسورد
-router.patch("/confirm-email", confirmEmail);
-router.patch("/reset-password", resetPassword);
+//forget-password
+router.patch("/confirm-forget-password", confirmAdminForgetPass);
 
-// حذف کاربر
-router.delete("/:id", deleteUser);
+//get a staff
+router.get("/get/:id", getStaffById);
+
+// update a staff
+router.patch("/update-stuff/:id", updateStaff);
+
+//update staf status
+// router.put("/update-status/:id", updatedStatus);
+
+//delete a staff
+router.delete("/:id", deleteStaff);
 
 module.exports = router;

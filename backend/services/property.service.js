@@ -1,145 +1,116 @@
-const Brand = require("../model/Brand"); // optional: اگر املاک برند داشته باشند
-const Category = require("../model/Category"); // optional: اگر دسته‌بندی املاک دارید
+// backend/service/property.service.js
 const Property = require("../model/Property");
 
-// ➕ Create a new property
-exports.createPropertyService = async (data) => {
-  const property = await Property.create(data);
-
-  const { _id: propertyId, owner, category } = property;
-
-  // اگر میخوای owner یا category آپدیت بشه
-  if (owner?.id) {
-    await Brand.updateOne(
-      { _id: owner.id },
-      { $push: { properties: propertyId } }
-    );
-  }
-
-  if (category?.id) {
-    await Category.updateOne(
-      { _id: category.id },
-      { $push: { properties: propertyId } }
-    );
-  }
-
-  return property;
-};
-
-// ➕ Add multiple properties
-exports.addAllPropertyService = async (data) => {
-  await Property.deleteMany();
-  const properties = await Property.insertMany(data);
-
-  for (const property of properties) {
-    if (property.owner?.id) {
-      await Brand.findByIdAndUpdate(property.owner.id, {
-        $push: { properties: property._id },
-      });
-    }
-    if (property.category?.id) {
-      await Category.findByIdAndUpdate(property.category.id, {
-        $push: { properties: property._id },
-      });
+class PropertyService {
+  // ایجاد ملک جدید
+  async createProperty(data) {
+    try {
+      const property = new Property(data);
+      await property.save();
+      return property;
+    } catch (err) {
+      throw err;
     }
   }
 
-  return properties;
-};
+  // دریافت ملک با آی‌دی
+  async getPropertyById(id) {
+    const property = await Property.findById(id)
+      .populate("owner")
+      .populate("contracts")
+      .populate("createdBy");
+    if (!property) throw new Error("Property not found");
+    return property;
+  }
 
-// 📋 Get all properties
-exports.getAllPropertiesService = async () => {
-  const properties = await Property.find({})
-    .populate("owner")
-    .populate("category");
-  return properties;
-};
+  // آپدیت ملک
+  async updateProperty(id, data) {
+    try {
+      const updatedProperty = await Property.findByIdAndUpdate(id, data, {
+        new: true,
+      });
+      if (!updatedProperty) throw new Error("Property not found");
+      return updatedProperty;
+    } catch (err) {
+      throw err;
+    }
+  }
 
-// 📍 Get properties by type
-exports.getPropertyTypeService = async (type) => {
-  const properties = await Property.find({ propertyType: type })
-    .populate("owner")
-    .populate("category");
-  return properties;
-};
+  // حذف ملک
+  async deleteProperty(id) {
+    const deletedProperty = await Property.findByIdAndDelete(id);
+    if (!deletedProperty) throw new Error("Property not found");
+    return deletedProperty;
+  }
 
-// 🏷 Get featured properties
-exports.getFeaturedPropertyService = async () => {
-  const properties = await Property.find({ featured: true })
-    .populate("owner")
-    .populate("category");
-  return properties;
-};
+  // تغییر وضعیت ملک
+  async changePropertyStatus(id, status) {
+    const allowedStatuses = [
+      "در دسترس",
+      "اجاره داده شده",
+      "فروخته شده",
+      "در تعمیر",
+    ];
+    if (!allowedStatuses.includes(status)) {
+      throw new Error("Invalid status");
+    }
+    const property = await Property.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+    if (!property) throw new Error("Property not found");
+    return property;
+  }
 
-// 📅 Get properties with active offers
-exports.getOfferPropertyService = async () => {
-  const properties = await Property.find({
-    "offerDate.endDate": { $gt: new Date() },
-  })
-    .populate("owner")
-    .populate("category");
-  return properties;
-};
+  // افزایش شمارنده بازدید
+  async incrementViews(id) {
+    const property = await Property.findByIdAndUpdate(
+      id,
+      { $inc: { viewsCount: 1 } },
+      { new: true }
+    );
+    if (!property) throw new Error("Property not found");
+    return property;
+  }
 
-// 🔎 Get single property
-exports.getPropertyService = async (id) => {
-  if (!id) throw new Error("Property ID is required");
+  // لیست ملک‌ها با فیلتر و pagination
+  async listProperties({ page = 1, limit = 10, status, type, owner }) {
+    const query = {};
+    if (status) query.status = status;
+    if (type) query.type = type;
+    if (owner) query.owner = owner;
 
-  const property = await Property.findById(id)
-    .populate("owner")
-    .populate("category")
-    .populate("contracts");
+    const properties = await Property.find(query)
+      .populate("owner")
+      .populate("contracts")
+      .populate("createdBy")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
-  return property;
-};
+    const total = await Property.countDocuments(query);
+    return { properties, total, page, limit };
+  }
 
-// 🔄 Update a property
-exports.updatePropertyService = async (id, data) => {
-  const property = await Property.findById(id);
+  // جستجو ملک‌ها بر اساس عنوان، توضیحات یا تگ‌ها
+  async searchProperties({ keyword, page = 1, limit = 10 }) {
+    const regex = new RegExp(keyword, "i");
+    const query = {
+      $or: [{ title: regex }, { description: regex }, { tags: regex }],
+    };
 
-  if (!property) return null;
+    const properties = await Property.find(query)
+      .populate("owner")
+      .populate("contracts")
+      .populate("createdBy")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
 
-  Object.assign(property, data);
+    const total = await Property.countDocuments(query);
+    return { properties, total, page, limit };
+  }
+}
 
-  await property.save();
-
-  return property;
-};
-
-// ❌ Delete a property
-exports.deleteProperty = async (id) => {
-  const result = await Property.findByIdAndDelete(id);
-  return result;
-};
-
-// 🔎 Related properties by category
-exports.getRelatedPropertyService = async (propertyId) => {
-  const current = await Property.findById(propertyId);
-
-  if (!current) return [];
-
-  const related = await Property.find({
-    "category.name": current.category.name,
-    _id: { $ne: propertyId },
-  });
-
-  return related;
-};
-
-// 🔍 Filter properties by query (price, area, type, status)
-exports.filterPropertiesService = async (query) => {
-  const filter = {};
-
-  if (query.minPrice) filter.price = { $gte: Number(query.minPrice) };
-  if (query.maxPrice)
-    filter.price = { ...filter.price, $lte: Number(query.maxPrice) };
-  if (query.status) filter.status = query.status;
-  if (query.propertyType) filter.propertyType = query.propertyType;
-  if (query.city) filter["address.city"] = query.city;
-
-  const properties = await Property.find(filter)
-    .populate("owner")
-    .populate("category");
-
-  return properties;
-};
+module.exports = new PropertyService();

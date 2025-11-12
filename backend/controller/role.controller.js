@@ -1,96 +1,82 @@
-const Role = require("../model/Role");
-const roleService = require("../services/role.service");
+// backend/controller/role.controller.js
+const RoleService = require("../services/role.service");
 
-// ایجاد نقش جدید
-exports.addRole = async (req, res, next) => {
-  try {
-    const result = await roleService.addRoleService(req.body);
-    res.status(200).json({
-      status: "success",
-      message: "Role created successfully!",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+class RoleController {
+  // ایجاد نقش جدید
+  async createRole(req, res) {
+    try {
+      const role = await RoleService.createRole(req.body);
+      res.status(201).json({ success: true, data: role });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// افزودن چند نقش همزمان
-exports.addAllRoles = async (req, res, next) => {
-  try {
-    const result = await roleService.addAllRolesService(req.body);
-    res.status(200).json({
-      status: "success",
-      message: "Roles added successfully!",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+  // دریافت نقش با آی‌دی
+  async getRoleById(req, res) {
+    try {
+      const role = await RoleService.getRoleById(req.params.id);
+      res.json({ success: true, data: role });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
   }
-};
 
-// دریافت تمام نقش‌ها
-exports.getAllRoles = async (req, res, next) => {
-  try {
-    const result = await Role.find(
-      {},
-      { name: 1, description: 1, permissions: 1, status: 1 }
-    );
-    res.status(200).json({
-      success: true,
-      result,
-    });
-  } catch (error) {
-    next(error);
+  // دریافت نقش با نام
+  async getRoleByName(req, res) {
+    try {
+      const role = await RoleService.getRoleByName(req.params.name);
+      res.json({ success: true, data: role });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
   }
-};
 
-// دریافت نقش‌های فعال
-exports.getActiveRoles = async (req, res, next) => {
-  try {
-    const result = await roleService.getActiveRolesService();
-    res.status(200).json({
-      success: true,
-      result,
-    });
-  } catch (error) {
-    next(error);
+  // آپدیت نقش
+  async updateRole(req, res) {
+    try {
+      const updatedRole = await RoleService.updateRole(req.params.id, req.body);
+      res.json({ success: true, data: updatedRole });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// حذف نقش
-exports.deleteRole = async (req, res, next) => {
-  try {
-    await roleService.deleteRoleService(req.params.id);
-    res.status(200).json({
-      success: true,
-      message: "Role deleted successfully",
-    });
-  } catch (error) {
-    next(error);
+  // حذف نقش
+  async deleteRole(req, res) {
+    try {
+      const deletedRole = await RoleService.deleteRole(req.params.id);
+      res.json({ success: true, data: deletedRole });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
   }
-};
 
-// ویرایش نقش
-exports.updateRole = async (req, res, next) => {
-  try {
-    const result = await roleService.updateRoleService(req.params.id, req.body);
-    res.status(200).json({
-      status: true,
-      message: "Role updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+  // تغییر وضعیت نقش
+  async changeRoleStatus(req, res) {
+    try {
+      const { status } = req.body;
+      const role = await RoleService.changeRoleStatus(req.params.id, status);
+      res.json({ success: true, data: role });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// دریافت یک نقش خاص
-exports.getSingleRole = async (req, res, next) => {
-  try {
-    const result = await roleService.getSingleRoleService(req.params.id);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
+  // لیست نقش‌ها با فیلتر و pagination
+  async listRoles(req, res) {
+    try {
+      const { page, limit, status } = req.query;
+      const result = await RoleService.listRoles({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        status,
+      });
+      res.json({ success: true, data: result });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
+}
+
+module.exports = new RoleController();

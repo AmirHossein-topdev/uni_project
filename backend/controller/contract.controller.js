@@ -1,119 +1,82 @@
-const Contract = require("../model/Contract");
+// backend/controller/contract.controller.js
+const ContractService = require("../services/contract.service");
 
-// ➕ ایجاد قرارداد جدید
-exports.addContract = async (req, res, next) => {
-  try {
-    const contract = await Contract.create(req.body);
-    res.status(201).json({
-      success: true,
-      message: "قرارداد با موفقیت ثبت شد",
-      contract,
-    });
-  } catch (error) {
-    console.error("Add Contract Error:", error);
-    next(error);
-  }
-};
-
-// 📃 دریافت همه قراردادها
-exports.getContracts = async (req, res, next) => {
-  try {
-    const contracts = await Contract.find({})
-      .populate("tenant", "name email contactNumber")
-      .populate("property", "title address");
-    res.status(200).json({ success: true, data: contracts });
-  } catch (error) {
-    console.error("Get Contracts Error:", error);
-    next(error);
-  }
-};
-
-// 📄 دریافت یک قرارداد خاص
-exports.getSingleContract = async (req, res, next) => {
-  try {
-    const contract = await Contract.findById(req.params.id)
-      .populate("tenant", "name email contactNumber")
-      .populate("property", "title address");
-    if (!contract) {
-      return res
-        .status(404)
-        .json({ success: false, message: "قرارداد یافت نشد" });
+class ContractController {
+  // ایجاد قرارداد جدید
+  async createContract(req, res) {
+    try {
+      const contract = await ContractService.createContract(req.body);
+      res.status(201).json({ success: true, data: contract });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
     }
-    res.status(200).json(contract);
-  } catch (error) {
-    console.error("Get Single Contract Error:", error);
-    next(error);
   }
-};
 
-// 🔄 بروزرسانی وضعیت قرارداد
-exports.updateContractStatus = async (req, res, next) => {
-  try {
-    const { status } = req.body;
-    const contract = await Contract.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-    if (!contract) {
-      return res
-        .status(404)
-        .json({ success: false, message: "قرارداد یافت نشد" });
+  // دریافت قرارداد با آی‌دی
+  async getContractById(req, res) {
+    try {
+      const contract = await ContractService.getContractById(req.params.id);
+      res.json({ success: true, data: contract });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
     }
-    res.status(200).json({
-      success: true,
-      message: "وضعیت قرارداد با موفقیت بروزرسانی شد",
-      contract,
-    });
-  } catch (error) {
-    console.error("Update Contract Status Error:", error);
-    next(error);
   }
-};
 
-// 📝 افزودن یادداشت یا اسناد به قرارداد
-exports.addDocumentsOrNotes = async (req, res, next) => {
-  try {
-    const { notes, documents } = req.body;
-    const contract = await Contract.findById(req.params.id);
-    if (!contract) {
-      return res
-        .status(404)
-        .json({ success: false, message: "قرارداد یافت نشد" });
+  // آپدیت قرارداد
+  async updateContract(req, res) {
+    try {
+      const updatedContract = await ContractService.updateContract(
+        req.params.id,
+        req.body
+      );
+      res.json({ success: true, data: updatedContract });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
     }
-
-    if (notes) contract.notes = notes;
-    if (documents && Array.isArray(documents)) {
-      contract.documents.push(...documents);
-    }
-
-    await contract.save();
-
-    res.status(200).json({
-      success: true,
-      message: "اسناد یا یادداشت‌ها با موفقیت اضافه شد",
-      contract,
-    });
-  } catch (error) {
-    console.error("Add Documents/Notes Error:", error);
-    next(error);
   }
-};
 
-// 🗑 حذف قرارداد
-exports.deleteContract = async (req, res, next) => {
-  try {
-    const contract = await Contract.findByIdAndDelete(req.params.id);
-    if (!contract) {
-      return res
-        .status(404)
-        .json({ success: false, message: "قرارداد یافت نشد" });
+  // حذف قرارداد
+  async deleteContract(req, res) {
+    try {
+      const deletedContract = await ContractService.deleteContract(
+        req.params.id
+      );
+      res.json({ success: true, data: deletedContract });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
     }
-    res
-      .status(200)
-      .json({ success: true, message: "قرارداد با موفقیت حذف شد" });
-  } catch (error) {
-    console.error("Delete Contract Error:", error);
-    next(error);
   }
-};
+
+  // تغییر وضعیت قرارداد
+  async changeContractStatus(req, res) {
+    try {
+      const { status } = req.body;
+      const contract = await ContractService.changeContractStatus(
+        req.params.id,
+        status
+      );
+      res.json({ success: true, data: contract });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // لیست قراردادها با فیلتر و pagination
+  async listContracts(req, res) {
+    try {
+      const { page, limit, status, tenant, property } = req.query;
+      const result = await ContractService.listContracts({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        status,
+        tenant,
+        property,
+      });
+      res.json({ success: true, data: result });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+}
+
+module.exports = new ContractController();

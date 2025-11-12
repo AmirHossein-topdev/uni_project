@@ -1,57 +1,64 @@
+// backend/routes/property.routes.js
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const propertyController = require("../controller/property.controller");
-const Property = require("../model/Property");
+const PropertyController = require("../controller/property.controller");
 
-// 🔹 Multer برای آپلود تصاویر
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// Middleware placeholder برای احراز هویت و بررسی دسترسی
+const authMiddleware = (req, res, next) => {
+  // اینجا می‌تونی JWT یا session validation بذاری
+  // req.user = decoded user
+  next();
+};
 
-// ➕ Add single property
-router.post("/add", upload.array("images", 10), propertyController.addProperty);
+const roleMiddleware = (roles) => (req, res, next) => {
+  // اینجا بررسی کن req.user.role در roles باشه
+  // اگر نبود:
+  // return res.status(403).json({ success: false, message: "Forbidden" });
+  next();
+};
 
-// ➕ Add multiple properties
-router.post("/add-all", propertyController.addAllProperties);
+// ایجاد ملک جدید
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware(["admin", "agent"]),
+  PropertyController.createProperty
+);
 
-// 📋 Get all properties
-router.get("/all", propertyController.getAllProperties);
+// دریافت ملک با آی‌دی
+router.get("/:id", authMiddleware, PropertyController.getPropertyById);
 
-// 🏷 Featured properties
-router.get("/featured", propertyController.getFeaturedProperties);
+// آپدیت ملک
+router.put(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["admin", "agent"]),
+  PropertyController.updateProperty
+);
 
-// 📅 Properties with active offers
-router.get("/offer", propertyController.getOfferProperties);
+// حذف ملک
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  PropertyController.deleteProperty
+);
 
-// 🔎 Single property
-router.get("/single/:id", propertyController.getSingleProperty);
+// تغییر وضعیت ملک
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  roleMiddleware(["admin", "agent"]),
+  PropertyController.changePropertyStatus
+);
 
-// 🔄 Update property
-router.patch("/edit/:id", upload.array("images", 10), async (req, res) => {
-  try {
-    const property = await Property.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    res.json({ success: true, property });
-  } catch (err) {
-    console.error("Edit Property Error:", err);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "خطا در ویرایش ملک",
-        error: err.message,
-      });
-  }
-});
+// افزایش شمارنده بازدید
+router.patch("/:id/views", PropertyController.incrementViews);
 
-// ❌ Delete property
-router.delete("/:id", propertyController.deleteProperty);
+// لیست ملک‌ها با فیلتر و pagination
+router.get("/", authMiddleware, PropertyController.listProperties);
 
-// 🔎 Related properties
-router.get("/related/:id", propertyController.getRelatedProperties);
-
-// 🔍 Filter properties by query
-router.get("/filter", propertyController.filterProperties);
+// جستجو ملک‌ها
+router.get("/search", authMiddleware, PropertyController.searchProperties);
 
 module.exports = router;

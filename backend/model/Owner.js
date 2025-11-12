@@ -9,6 +9,18 @@ const ownerSchema = mongoose.Schema(
       trim: true,
       maxLength: 100,
     },
+    nationalId: {
+      // ← کد ملی یا شناسه شخص حقیقی
+      type: String,
+      trim: true,
+      unique: true, // اگر میخوای یکتا باشه
+    },
+    orgId: {
+      // ← شناسه کد سازمانی
+      type: String,
+      trim: true,
+      unique: true, // اگر میخوای یکتا باشه
+    },
     email: {
       type: String,
       trim: true,
@@ -32,6 +44,7 @@ const ownerSchema = mongoose.Schema(
       enum: ["active", "inactive", "blocked"],
       default: "active",
     },
+    photo: { type: String }, // ← URL عکس
     properties: [
       {
         type: ObjectId,

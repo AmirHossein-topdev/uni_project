@@ -1,142 +1,112 @@
-const Property = require("../model/Property");
-const propertyServices = require("../services/property.service");
+// backend/controller/property.controller.js
+const PropertyService = require("../services/property.service");
 
-// ➕ Add a new property
-exports.addProperty = async (req, res, next) => {
-  try {
-    const firstImage = {
-      img: req.body.mainImage,
-      description: req.body.mainImageDescription || "",
-    };
-    const galleryImages = [firstImage, ...(req.body.gallery || [])];
-
-    const result = await propertyServices.createPropertyService({
-      ...req.body,
-      gallery: galleryImages,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Property created successfully!",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ➕ Add multiple properties
-exports.addAllProperties = async (req, res, next) => {
-  try {
-    const result = await propertyServices.addAllPropertyService(req.body);
-    res.status(200).json({
-      success: true,
-      message: "All properties added successfully!",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// 📋 Get all properties (admin)
-exports.getAllProperties = async (req, res, next) => {
-  try {
-    const result = await propertyServices.getAllPropertiesService();
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// 📍 Get properties by type
-exports.getPropertiesByType = async (req, res, next) => {
-  try {
-    const result = await propertyServices.getPropertyTypeService(
-      req.params.type
-    );
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// 🏷 Get featured properties
-exports.getFeaturedProperties = async (req, res, next) => {
-  try {
-    const result = await propertyServices.getFeaturedPropertyService();
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// 📅 Get properties with active offers
-exports.getOfferProperties = async (req, res, next) => {
-  try {
-    const result = await propertyServices.getOfferPropertyService();
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// 🏡 Get single property
-exports.getSingleProperty = async (req, res, next) => {
-  try {
-    const property = await Property.findById(req.params.id)
-      .populate("owner", "name email phone")
-      .populate("contracts");
-
-    if (!property) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Property not found" });
+class PropertyController {
+  // ایجاد ملک جدید
+  async createProperty(req, res) {
+    try {
+      const property = await PropertyService.createProperty(req.body);
+      res.status(201).json({ success: true, data: property });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
     }
-
-    res.status(200).json({ success: true, data: property });
-  } catch (error) {
-    next(error);
   }
-};
 
-// 🔄 Update property
-exports.updateProperty = async (req, res, next) => {
-  try {
-    const updatedProperty = await propertyServices.updatePropertyService(
-      req.params.id,
-      req.body
-    );
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: updatedProperty,
-        message: "Property updated successfully",
+  // دریافت ملک با آی‌دی
+  async getPropertyById(req, res) {
+    try {
+      const property = await PropertyService.getPropertyById(req.params.id);
+      res.json({ success: true, data: property });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
+  }
+
+  // آپدیت ملک
+  async updateProperty(req, res) {
+    try {
+      const updatedProperty = await PropertyService.updateProperty(
+        req.params.id,
+        req.body
+      );
+      res.json({ success: true, data: updatedProperty });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // حذف ملک
+  async deleteProperty(req, res) {
+    try {
+      const deletedProperty = await PropertyService.deleteProperty(
+        req.params.id
+      );
+      res.json({ success: true, data: deletedProperty });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
+  }
+
+  // تغییر وضعیت ملک
+  async changePropertyStatus(req, res) {
+    try {
+      const { status } = req.body;
+      const property = await PropertyService.changePropertyStatus(
+        req.params.id,
+        status
+      );
+      res.json({ success: true, data: property });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // افزایش شمارنده بازدید
+  async incrementViews(req, res) {
+    try {
+      const property = await PropertyService.incrementViews(req.params.id);
+      res.json({ success: true, data: property });
+    } catch (err) {
+      res.status(404).json({ success: false, message: err.message });
+    }
+  }
+
+  // لیست ملک‌ها با فیلتر و pagination
+  async listProperties(req, res) {
+    try {
+      const { page, limit, status, type, owner } = req.query;
+      const result = await PropertyService.listProperties({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        status,
+        type,
+        owner,
       });
-  } catch (error) {
-    next(error);
+      res.json({ success: true, data: result });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
 
-// ❌ Delete property
-exports.deleteProperty = async (req, res, next) => {
-  try {
-    await propertyServices.deleteProperty(req.params.id);
-    res
-      .status(200)
-      .json({ success: true, message: "Property deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-};
+  // جستجو ملک‌ها
+  async searchProperties(req, res) {
+    try {
+      const { keyword, page, limit } = req.query;
+      if (!keyword)
+        return res
+          .status(400)
+          .json({ success: false, message: "Keyword is required" });
 
-// 🔎 Get properties with filters (area, price, type, status)
-exports.filterProperties = async (req, res, next) => {
-  try {
-    const result = await propertyServices.filterPropertiesService(req.query);
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    next(error);
+      const result = await PropertyService.searchProperties({
+        keyword,
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+      });
+      res.json({ success: true, data: result });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
   }
-};
+}
+
+module.exports = new PropertyController();
