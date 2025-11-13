@@ -35,7 +35,7 @@ export default function Header({ onOpenSidebar }) {
 
       {/* عنوان دسکتاپ */}
       <div className="hidden lg:flex flex-col">
-        <h2 className="text-2xl font-bold">داشبورد فروشگاه</h2>
+        <h2 className="text-2xl font-bold">سمت : </h2>
         <p className="text-sm text-gray-400 mt-1">
           خوش آمدید! امروز <span className="text-green-400">۵ اعلان جدید</span>{" "}
           دارید.
@@ -50,8 +50,8 @@ export default function Header({ onOpenSidebar }) {
         >
           <Image
             src="https://randomuser.me/api/portraits/men/32.jpg"
-            width={40}
-            height={40}
+            width={50}
+            height={50}
             alt="User"
             className="rounded-full border-2 border-green-400"
             unoptimized

@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router"; 
-import { useGetBrandByIdQuery, useUpdateBrandMutation } from "../../../../../../redux/features/brandApi";
+import { useRouter } from "next/router";
+import {
+  useGetBrandByIdQuery,
+  useUpdateBrandMutation,
+} from "../../../../../../redux/features/ownerApi";
 import { FaSave, FaArrowLeft } from "react-icons/fa";
 import Link from "next/link";
 import DashboardLayout from "../../../../layout";
@@ -11,7 +14,11 @@ export default function EditBrandPage() {
   const router = useRouter();
   const { id: brandId } = router.query;
 
-  const { data: brand, isLoading, isError } = useGetBrandByIdQuery(brandId, { skip: !brandId });
+  const {
+    data: brand,
+    isLoading,
+    isError,
+  } = useGetBrandByIdQuery(brandId, { skip: !brandId });
   const [updateBrand] = useUpdateBrandMutation();
 
   const [formData, setFormData] = useState({
@@ -79,10 +86,15 @@ export default function EditBrandPage() {
       <div className="p-5 md:p-8 max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
-          <Link href="/dashboard/brands" className="text-blue-600 hover:underline flex items-center gap-2">
+          <Link
+            href="/dashboard/brands"
+            className="text-blue-600 hover:underline flex items-center gap-2"
+          >
             <FaArrowLeft /> بازگشت به برندها
           </Link>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ویرایش برند</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            ویرایش برند
+          </h2>
         </div>
 
         {/* Form */}
@@ -92,7 +104,9 @@ export default function EditBrandPage() {
         >
           {/* Name */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">نام برند</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              نام برند
+            </label>
             <input
               type="text"
               name="name"
@@ -105,7 +119,9 @@ export default function EditBrandPage() {
 
           {/* Description */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">توضیحات</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              توضیحات
+            </label>
             <textarea
               name="description"
               value={formData.description}
@@ -117,7 +133,9 @@ export default function EditBrandPage() {
 
           {/* Email */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">ایمیل</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              ایمیل
+            </label>
             <input
               type="email"
               name="email"
@@ -129,7 +147,9 @@ export default function EditBrandPage() {
 
           {/* Website */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">وب‌سایت</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              وب‌سایت
+            </label>
             <input
               type="text"
               name="website"
@@ -141,7 +161,9 @@ export default function EditBrandPage() {
 
           {/* Location */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">موقعیت</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              موقعیت
+            </label>
             <input
               type="text"
               name="location"
@@ -153,7 +175,9 @@ export default function EditBrandPage() {
 
           {/* Status */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">وضعیت</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              وضعیت
+            </label>
             <select
               name="status"
               value={formData.status}
@@ -167,7 +191,9 @@ export default function EditBrandPage() {
 
           {/* Logo */}
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">لوگو (URL)</label>
+            <label className="mb-1 font-medium text-gray-700 dark:text-gray-200">
+              لوگو (URL)
+            </label>
             <input
               type="text"
               name="logo"
