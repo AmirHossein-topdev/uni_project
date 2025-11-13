@@ -41,6 +41,8 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/contracts", contractRoutes);
 
+// اجازه به دسترسی به فایل‌های آپلود شده
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // --- Root Route ---
 app.get("/", (req, res) => res.send("Server is running successfully"));
 
