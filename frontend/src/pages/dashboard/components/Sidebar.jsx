@@ -5,142 +5,32 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   FaBoxOpen,
-  FaChartBar,
   FaChevronDown,
   FaChevronUp,
-  FaClipboardList,
-  FaCogs,
-  FaComments,
-  FaFileAlt,
-  FaFlask,
   FaHome,
-  FaMoneyCheckAlt,
-  FaPercent,
-  FaPlusCircle,
-  FaRegDotCircle,
-  FaRegEdit,
   FaShoppingBag,
-  FaShoppingBasket,
   FaStore,
-  FaTags,
-  FaThList,
   FaTimes,
   FaUsers,
 } from "react-icons/fa";
-import { TbCategoryFilled } from "react-icons/tb";
-import { MdFeaturedPlayList } from "react-icons/md";
-import { IoNewspaperOutline } from "react-icons/io5";
 
 const menuItems = [
   { label: "داشبورد", icon: <FaHome />, href: "/dashboard" },
   {
-    label: "فروشگاه",
+    label: "مالکان",
     icon: <FaShoppingBag />,
-    href: "/dashboard/shop",
-    subMenu: [
-      {
-        label: "سفارشات",
-        icon: <FaClipboardList />,
-        href: "/dashboard/shop/orders",
-      },
-      {
-        label: "مشتریان",
-        icon: <FaUsers />,
-        href: "/dashboard/shop/customers",
-      },
-      {
-        label: "فرم پرداخت",
-        icon: <FaMoneyCheckAlt />,
-        href: "/dashboard/shop/payment-form",
-      },
-      {
-        label: "گزارشات",
-        icon: <FaChartBar />,
-        href: "/dashboard/shop/reports",
-      },
-      { label: "پیکربندی", icon: <FaCogs />, href: "/dashboard/shop/settings" },
-    ],
+    href: "/dashboard/main/owners",
   },
   {
-    label: "محصولات",
+    label: "مستغلات سازمانی",
     icon: <FaBoxOpen />,
-    href: "/dashboard/shop/products",
-    subMenu: [
-      {
-        label: "افزودن محصول جدید",
-        icon: <FaPlusCircle />,
-        href: "/dashboard/shop/products/create",
-      },
-      {
-        label: "همه محصولات",
-        icon: <FaThList />,
-        href: "/dashboard/shop/products",
-      },
-      {
-        label: "دسته‌بندی‌ها",
-        icon: <TbCategoryFilled />,
-        href: "/dashboard/shop/categories",
-      },
-      {
-        label: "برندها",
-        icon: <TbCategoryFilled />,
-        href: "/dashboard/shop/brands",
-      },
-      { label: "برچسب‌ها", icon: <FaTags />, href: "/dashboard/shop/tags" },
-      {
-        label: "ویژگی‌ها",
-        icon: <MdFeaturedPlayList />,
-        href: "/dashboard/shop/features",
-      },
-      {
-        label: "دیدگاه‌ها",
-        icon: <FaComments />,
-        href: "/dashboard/shop/comments",
-      },
-      {
-        label: "کدهای تخفیف",
-        icon: <FaPercent />,
-        href: "/dashboard/shop/discounts",
-      },
-    ],
+    href: "/dashboard/main/properties",
   },
   {
-    label: "وبلاگ",
-    icon: <IoNewspaperOutline />,
-    href: "/dashboard/blog",
-    subMenu: [
-      { label: "همه مقاله‌ها", icon: <FaThList />, href: "/dashboard/blog" },
-      {
-        label: "مقاله جدید",
-        icon: <FaPlusCircle />,
-        href: "/dashboard/blog/create",
-      },
-      {
-        label: "دسته‌ها",
-        icon: <TbCategoryFilled />,
-        href: "/dashboard/blog/categories",
-      },
-      { label: "برچسب‌ها", icon: <FaTags />, href: "/dashboard/blog/tags" },
-    ],
+    label: "کاربران",
+    icon: <FaUsers />,
+    href: "/dashboard/users",
   },
-  { label: "صفحات سفارشی", icon: <FaFileAlt />, href: "/dashboard/pages" },
-  {
-    label: "بنرها / اسلایدر",
-    icon: <FaShoppingBasket />,
-    href: "/dashboard/banners",
-  },
-  {
-    label: "اعلان‌ها",
-    icon: <FaRegDotCircle />,
-    href: "/dashboard/notifications",
-  },
-  {
-    label: "پیام‌ها / درخواست‌ها",
-    icon: <MdFeaturedPlayList />,
-    href: "/dashboard/messages",
-  },
-  { label: "نقش‌ها و ادمین‌ها", icon: <FaUsers />, href: "/dashboard/roles" },
-  { label: "تنظیمات سایت", icon: <FaCogs />, href: "/dashboard/settings" },
 ];
 
 function MenuItem({ item, pathname, onClose, level = 0 }) {

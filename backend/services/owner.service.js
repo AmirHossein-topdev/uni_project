@@ -33,10 +33,18 @@ class OwnerService {
   // آپدیت مالک
   async updateOwner(id, data) {
     try {
+      console.log(
+        "🔥 1111OwnerService.updateOwner → updatedData received:",
+        data
+      );
       const updatedOwner = await Owner.findByIdAndUpdate(id, data, {
         new: true,
       });
       if (!updatedOwner) throw new Error("Owner not found");
+      console.log(
+        "🔥 2222OwnerService.updateOwner → updatedData received:",
+        data
+      );
       return updatedOwner;
     } catch (err) {
       if (err.code === 11000 && err.keyValue.email) {

@@ -111,14 +111,22 @@ class OwnerController {
 
   /* -------------------------- ویرایش مالک -------------------------- */
   async updateOwner(req, res) {
+    console.log("🔥 Controller.updateOwner → req.body:", req.body);
+    console.log("🔥 Controller.updateOwner → req.file:", req.file);
+
     try {
       const updatedData = req.body;
       if (req.file) {
         updatedData.photo = `/uploads/owners/${req.file.filename}`;
       }
+      console.log("🔥 OwnerController.updateOwner → updatedData:", updatedData);
       const updatedOwner = await OwnerService.updateOwner(
         req.params.id,
         updatedData
+      );
+      console.log(
+        "🔥 OwnerController.updateOwner → updatedOwner:",
+        updatedOwner
       );
       res.json({ success: true, data: updatedOwner });
     } catch (err) {

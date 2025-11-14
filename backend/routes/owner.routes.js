@@ -71,6 +71,7 @@ router.put(
   "/:id",
   authMiddleware,
   roleMiddleware(["admin", "agent"]),
+  OwnerController.upload.single("photo"), // ← اضافه شد
   OwnerController.updateOwner
 );
 

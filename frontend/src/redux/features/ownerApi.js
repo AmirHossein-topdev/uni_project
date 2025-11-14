@@ -37,7 +37,7 @@ export const ownerApi = apiSlice.injectEndpoints({
 
     // 3️⃣ گرفتن مالک بر اساس ID
     getOwnerById: builder.query({
-      query: (id) => `${process.env.NEXT_PUBLIC_API_URL}owners/${id}`,
+      query: (id) => `${process.env.NEXT_PUBLIC_API_URL}/owners/${id}`,
       transformResponse: (response) => response || {},
       providesTags: (result, error, id) => [{ type: "Owner", id }],
     }),
@@ -45,9 +45,10 @@ export const ownerApi = apiSlice.injectEndpoints({
     // 4️⃣ ویرایش مالک
     updateOwner: builder.mutation({
       query: ({ id, formData }) => ({
-        url: `${process.env.NEXT_PUBLIC_API_URL}owners/edit/${id}`,
-        method: "PATCH",
-        body: formData,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/owners/${id}`,
+        method: "PUT",
+        body: formData, // ← همین FormData
+        // headers رو نذار، multer خودش Content-Type رو تنظیم میکنه
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "Owner", id },
@@ -58,7 +59,7 @@ export const ownerApi = apiSlice.injectEndpoints({
     // 5️⃣ حذف مالک
     deleteOwner: builder.mutation({
       query: (id) => ({
-        url: `${process.env.NEXT_PUBLIC_API_URL}owners/delete/${id}`,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/owners/delete/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: [{ type: "Owner", id: "LIST" }],
@@ -67,7 +68,7 @@ export const ownerApi = apiSlice.injectEndpoints({
     // 6️⃣ تغییر وضعیت مالک
     changeOwnerStatus: builder.mutation({
       query: ({ id, status }) => ({
-        url: `${process.env.NEXT_PUBLIC_API_URL}owners/status/${id}`,
+        url: `${process.env.NEXT_PUBLIC_API_URL}/owners/status/${id}`,
         method: "PATCH",
         body: { status },
       }),
