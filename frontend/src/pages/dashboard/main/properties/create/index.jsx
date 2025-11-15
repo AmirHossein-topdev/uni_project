@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 import Swal from "sweetalert2";
-
-import Select from "react-select";
 import { useRouter } from "next/router";
 import { useAddPropertyMutation } from "../../../../../redux/features/propertyApi";
 import { useGetOwnersQuery } from "../../../../../redux/features/ownerApi";
@@ -17,7 +15,7 @@ export default function CreatePropertyPage() {
   const Select = dynamic(() => import("react-select"), { ssr: false });
   const router = useRouter();
   const { data: owners } = useGetOwnersQuery(); // فرضاً RTK Query
-
+  const form = new FormData();
   const [addProperty] = useAddPropertyMutation();
 
   const [formData, setFormData] = useState({
@@ -58,6 +56,7 @@ export default function CreatePropertyPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     // برای فیلدهای آدرس
     if (name.startsWith("address.")) {
       const key = name.split(".")[1];
@@ -81,35 +80,55 @@ export default function CreatePropertyPage() {
   const handleMainImageChange = (e) => {
     setFormData((prev) => ({ ...prev, mainImage: e.target.files[0] }));
   };
+  // const handleGalleryChange = (e) => {
+  //   setFormData((prev) => ({ ...prev, gallery: [...e.target.files] }));
+  // };
+  const handleGalleryChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      gallery: Array.from(e.target.files),
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const form = new FormData(); // حالا خارج از try تعریف شد
 
     try {
+      // 🔥 اینجا FormData می‌سازیم
+      const form = new FormData();
+
+      // تصویر اصلی
+      if (formData.mainImage) {
+        form.append("mainImage", formData.mainImage);
+      }
+
+      // گالری چند عکس
+      if (formData.gallery.length > 0) {
+        formData.gallery.forEach((file) => {
+          form.append("gallery", file);
+        });
+      }
+
+      // بقیه فیلدها
       for (const key in formData) {
-        if (key === "address" || key === "offerDate") {
-          form.append(key, JSON.stringify(formData[key]));
-        } else if (key === "mainImage") {
-          if (formData.mainImage) form.append("mainImage", formData.mainImage);
-        } else if (key === "gallery") {
-          if (formData.gallery.length > 0)
-            formData.gallery.forEach((g, i) => {
-              form.append(`gallery[${i}]`, JSON.stringify(g));
-            });
-        } else if (key === "tags" || key === "features") {
-          if (formData[key])
-            form.append(key, JSON.stringify(formData[key].split(",")));
-        } else {
-          form.append(key, formData[key]);
+        if (key !== "mainImage" && key !== "gallery") {
+          if (key === "address" || key === "offerDate") {
+            form.append(key, JSON.stringify(formData[key]));
+          } else if (key === "tags" || key === "features") {
+            if (formData[key])
+              form.append(key, JSON.stringify(formData[key].split(",")));
+          } else {
+            form.append(key, formData[key]);
+          }
         }
       }
 
-      console.log("Payload to send:");
-      for (let pair of form.entries()) {
-        console.log(pair[0], pair[1]);
+      // لاگ برای بررسی محتویات FormData
+      for (let [key, value] of form.entries()) {
+        console.log(`${key}:`, value);
       }
 
+      // ارسال به backend
       await addProperty(form).unwrap();
 
       Swal.fire({
@@ -121,7 +140,7 @@ export default function CreatePropertyPage() {
 
       router.push("/dashboard/main/properties");
     } catch (err) {
-      console.error(err);
+      console.error("❌ Backend Error Response:", err);
       Swal.fire({
         icon: "error",
         title: "❌ خطا",
@@ -487,16 +506,33 @@ export default function CreatePropertyPage() {
             </label>
           </div>
 
-          {/* Featured */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="featured"
-              checked={formData.featured}
-              onChange={handleChange}
-              className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
-            />
-            <span className="text-gray-700 font-semibold">ویژه</span>
+          {/* Gallery Images */}
+          <div className="mt-4">
+            <label className="mb-1 font-semibold text-gray-700 block">
+              تصاویر گالری
+            </label>
+            <label className="flex items-center gap-3 border border-gray-300 rounded-lg p-3 cursor-pointer bg-gray-50 text-gray-700 hover:border-green-500 hover:ring-2 hover:ring-green-500 transition duration-150 w-full">
+              <MdDriveFolderUpload size={24} className="text-green-600" />
+              <span className="text-gray-600">
+                {formData.gallery.length > 0
+                  ? `${formData.gallery.length} فایل انتخاب شد`
+                  : "آپلود چند فایل (PNG, JPG)"}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryChange}
+                className="hidden"
+              />
+            </label>
+            {formData.gallery.length > 0 && (
+              <ul className="mt-2 list-disc list-inside text-gray-700">
+                {formData.gallery.map((file, idx) => (
+                  <li key={idx}>{file.name}</li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Submit Button */}

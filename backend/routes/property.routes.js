@@ -1,5 +1,6 @@
 // backend/routes/property.routes.js
 const express = require("express");
+const uploader = require("../middleware/uploader.js");
 const router = express.Router();
 const PropertyController = require("../controller/property.controller");
 
@@ -22,10 +23,12 @@ router.post(
   "/add",
   authMiddleware,
   roleMiddleware(["admin", "agent"]),
-  upload.single("photo"),
+  uploader.fields([
+    { name: "mainImage", maxCount: 1 },
+    { name: "gallery", maxCount: 10 },
+  ]),
   PropertyController.createProperty
 );
-
 // دریافت ملک با آی‌دی
 router.get("/:id", authMiddleware, PropertyController.getPropertyById);
 

@@ -5,7 +5,19 @@ class PropertyController {
   // ایجاد ملک جدید
   async createProperty(req, res) {
     try {
-      const property = await PropertyService.createProperty(req.body);
+      const data = { ...req.body };
+
+      // mainImage
+      if (req.file) {
+        data.mainImage = req.file.filename; // یا مسیر کامل
+      }
+
+      // gallery
+      if (req.files && req.files.gallery) {
+        data.gallery = req.files.gallery.map((f) => f.filename);
+      }
+
+      const property = await PropertyService.createProperty(data);
       res.status(201).json({ success: true, data: property });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });
