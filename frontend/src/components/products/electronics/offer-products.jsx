@@ -4,7 +4,7 @@ import { Pagination } from "swiper";
 import Link from "next/link";
 // internal
 import ProductItem from "./product-item";
-import { useGetOfferProductsQuery } from "@/redux/features/productApi";
+import { useGetOfferProductsQuery } from "@/redux/features/propertyApi";
 import { ArrowRightLong, ShapeLine } from "@/svg";
 import ErrorMsg from "@/components/common/error-msg";
 import HomeOfferPrdLoader from "@/components/loader/home/home-offer-prd-loader";
@@ -37,7 +37,11 @@ const sliderSetting = {
 };
 
 const OfferProducts = () => {
-  const {data: products,isError,isLoading} = useGetOfferProductsQuery("electronics");
+  const {
+    data: products,
+    isError,
+    isLoading,
+  } = useGetOfferProductsQuery("electronics");
   // decide what to render
 
   let content = null;

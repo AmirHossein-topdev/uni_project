@@ -19,9 +19,10 @@ const roleMiddleware = (roles) => (req, res, next) => {
 
 // ایجاد ملک جدید
 router.post(
-  "/",
+  "/add",
   authMiddleware,
   roleMiddleware(["admin", "agent"]),
+  upload.single("photo"),
   PropertyController.createProperty
 );
 

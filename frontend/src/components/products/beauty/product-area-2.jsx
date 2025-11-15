@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ProductItem from "./product-item";
 import ErrorMsg from "@/components/common/error-msg";
-import { useGetProductTypeQuery } from "@/redux/features/productApi";
+import { useGetProductTypeQuery } from "@/redux/features/propertyApi";
 import { HomeThreePrdTwoLoader } from "@/components/loader";
 
 // tabs

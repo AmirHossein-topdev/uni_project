@@ -24,10 +24,16 @@ const propertySchema = mongoose.Schema(
       required: true,
       enum: ["مسکونی", "تجاری", "زمین", "صنعتی", "سایر"],
     },
+    homeType: {
+      type: String,
+      required: true,
+      enum: ["آپارتمان", "ویلایی", "دوبلکس", "پنت‌هاوس", "سوئیت"],
+    },
+
     status: {
       type: String,
       required: true,
-      enum: ["در دسترس", "اجاره داده شده", "فروخته شده", "در تعمیر"],
+      enum: ["در دسترس", "غیرفعال", "در حال تعمیر"],
       default: "در دسترس",
     },
     description: {
@@ -49,10 +55,16 @@ const propertySchema = mongoose.Schema(
       min: [0, "Discount can't be negative"],
     },
     address: {
-      street: String,
-      city: String,
-      country: String,
-      postalCode: String,
+      street: { type: String, required: true },
+      floor: { type: Number },
+      unit: { type: String },
+      buildingNumber: { type: Number },
+      district: { type: String },
+      alley: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      country: { type: String, default: "ایران" },
+      postalCode: { type: Number, required: true },
     },
     owner: {
       type: ObjectId,
