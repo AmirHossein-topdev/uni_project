@@ -13,7 +13,7 @@ const tips = [
 
 export default function AdminLoginArea() {
   return (
-    <section className="relative min-h-screen bg-gray-50 flex flex-col lg:flex-row h-screen">
+    <section className="relative  bg-gray-50 flex flex-col lg:flex-row h-screen">
       {/* right */}
       <section className="w-full lg:w-3/4 p-6 lg:p-20">
         {/* logo */}
