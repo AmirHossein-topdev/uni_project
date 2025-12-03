@@ -51,7 +51,7 @@ export default function AdminLoginArea() {
           ))}
         </ul>
         {/* form */}
-        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-10 mb-10">
+        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-10 mb-5">
           <AdminLoginForm />
         </div>
 
@@ -98,7 +98,7 @@ export default function AdminLoginArea() {
         </div>
 
         {/* copyright */}
-        <p className="text-black mt-8 lg:mt-5 text-base text-center md:text-right lg:text-xl">
+        <p className="text-black mt-2 lg:mt-5 text-base text-center md:text-right lg:text-xl">
           پورتال رسمی سازمان تامین اجتماعی: www.tamin.ir | مرکز تماس شبانه‌روزی:
           1420 | شبکه‌های اجتماعی: tamin_media@
         </p>
