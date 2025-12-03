@@ -90,7 +90,7 @@ const AdminLoginForm = () => {
             type="email"
             dir="rtl"
             placeholder="نام کاربری"
-            className={`w-full px-4 py-3 rounded-lg border bg-gray-50 text-gray-900 placeholder-gray-900 focus:bg-white transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent  ${
+            className={`w-full px-4 py-3 rounded-lg border bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent  ${
               errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
             }`}
           />
@@ -112,7 +112,7 @@ const AdminLoginForm = () => {
             id="password"
             type={showPass ? "text" : "password"}
             placeholder="گذرواژه"
-            className={`w-full px-4 py-3 pl-12 rounded-lg border bg-gray-50 text-gray-900 placeholder-gray-900 focus:bg-white transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full px-4 py-3 pl-12 rounded-lg border bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
             }`}
           />
