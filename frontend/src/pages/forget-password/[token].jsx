@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 // internal
-import LoginShapes from "@/components/login-register/login-shapes";
 import ErrorMsg from "@/components/common/error-msg";
 import { useConfirmForgotPasswordMutation } from "@/redux/features/auth/authApi";
 import { CloseEye, OpenEye } from "@/svg";
@@ -53,7 +52,6 @@ const ForgotPassword = ({ params }) => {
       className="tp-login-area d-flex align-items-center justify-content-center"
       style={{ height: "100vh" }}
     >
-      <LoginShapes />
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-xl-6 col-lg-8">
