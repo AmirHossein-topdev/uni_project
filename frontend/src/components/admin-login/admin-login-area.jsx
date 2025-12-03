@@ -15,12 +15,12 @@ export default function AdminLoginArea() {
   return (
     <section className="fixed inset-0 bg-gray-50 flex flex-col lg:flex-row overflow-hidden">
       {/* right */}
-      <section className="w-full lg:w-3/4 p-6 lg:p-20 flex flex-col relative">
+      <section className="w-full lg:w-3/4 p-6 lg:p-20">
         {/* logo */}
         <img
           src="/assets/img/logo.png"
-          alt="Logo"
-          className="h-14 md:h-16 object-contain mx-auto md:mx-0 mb-5"
+          alt=""
+          className="h-14 md:h-14 object-fill mx-auto md:ms-0 mb-5"
         />
 
         {/* warning */}
@@ -50,58 +50,48 @@ export default function AdminLoginArea() {
             </li>
           ))}
         </ul>
-
-        {/* Admin Form */}
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        {/* form */}
+        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-10 mb-5">
           <AdminLoginForm />
         </div>
 
         {/* social medias */}
-        <div className="mx-auto md:mx-0 mt-4 lg:mt-32 bg-blue-800 rounded-2xl flex flex-wrap justify-evenly items-center w-fit gap-4 lg:gap-10 py-2 px-10">
+        <div className=" mx-auto md:ms-0 mt-2 lg:mt-82 bg-blue-800 rounded-2xl flex flex-wrap justify-evenly items-center w-fit gap-4 lg:gap-10 py-2 px-10">
           <Link
             href="https://t.me/yourUsername"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:text-blue-500"
           >
-            <img
-              src="/assets/img/logo/telegram.png"
-              alt="Telegram"
-              className="h-8"
-            />
+            <img src="/assets/img/logo/telegram.png" alt="" className="h-8" />
           </Link>
           <Link
             href="https://wa.me/yourNumber"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:text-green-500"
           >
-            <img
-              src="/assets/img/logo/whatsapp.png"
-              alt="WhatsApp"
-              className="h-8"
-            />
+            <img src="/assets/img/logo/whatsapp.png" alt="" className="h-8" />
           </Link>
           <Link
             href="https://instagram.com/yourUsername"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:text-purple-500"
           >
-            <img
-              src="/assets/img/logo/instagram.png"
-              alt="Instagram"
-              className="h-9"
-            />
+            <img src="/assets/img/logo/instagram.png" alt="" className="h-9" />
           </Link>
           <Link href="https://bale.ai/">
             <img
               src="/assets/img/logo/bale-color.png"
-              alt="Bale"
+              alt="bale"
               className="h-6"
             />
           </Link>
           <Link href="https://web.eaita.com/">
             <img
               src="/assets/img/logo/eitaa-icon-colorful.png"
-              alt="Eitaa"
+              alt="bale"
               className="h-6"
             />
           </Link>
@@ -118,7 +108,7 @@ export default function AdminLoginArea() {
       <section className="w-full lg:w-4/5 hidden md:block">
         <img
           src="/assets/img/taminLoginPic1.png"
-          alt="Banner"
+          alt=""
           className="h-64 sm:h-96 lg:h-screen w-full object-cover"
         />
       </section>
