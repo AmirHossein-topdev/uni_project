@@ -51,12 +51,12 @@ export default function AdminLoginArea() {
           ))}
         </ul>
         {/* form */}
-        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-15 mb-20">
+        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-10 mb-10">
           <AdminLoginForm />
         </div>
 
         {/* social medias */}
-        <div className=" mx-auto md:ms-0 mt-8 lg:mt-82 bg-blue-800 rounded-2xl flex flex-wrap justify-evenly items-center w-fit gap-4 lg:gap-10 py-2 px-10">
+        <div className=" mx-auto md:ms-0 mt-2 lg:mt-82 bg-blue-800 rounded-2xl flex flex-wrap justify-evenly items-center w-fit gap-4 lg:gap-10 py-2 px-10">
           <Link
             href="https://t.me/yourUsername"
             target="_blank"
