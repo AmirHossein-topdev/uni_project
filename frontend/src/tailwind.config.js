@@ -8,10 +8,16 @@ module.exports = {
   ],
   theme: {
     extend: {
-      boxShadow: {},
-      // چون از layout.js استفاده نمی‌کنید، این بخش را حذف کردم
-      // تا تداخلی با روش تعریف فونت شما در index.scss یا globals.css ایجاد نکند
+      spacing: {
+        82: "20.5rem",
+      },
+      fontSize: {
+        lg: "1.125rem",
+        xl: "1.25rem",
+        "2xl": "1.5rem",
+      },
     },
   },
   plugins: [],
+  safelist: ["mt-82", "mt-72", "lg:mt-72", "lg:mt-40", "md:mt-32", "md:mt-12"],
 };
