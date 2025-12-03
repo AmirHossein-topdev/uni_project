@@ -17,10 +17,14 @@ export default function AdminLoginArea() {
       {/* right */}
       <section className="w-full lg:w-3/4 p-6 lg:p-20">
         {/* logo */}
-        <img src="/assets/img/logo.png" alt="" className="h-16 object-fill" />
+        <img
+          src="/assets/img/logo.png"
+          alt=""
+          className="h-14 md:h-18  object-fill mx-auto md:ms-0 mb-5"
+        />
 
         {/* warning */}
-        <div className="mt-12 lg:mt-72 bg-amber-200 border-l-4 border-amber-500 text-amber-900 p-4 rounded-lg flex gap-3 w-full lg:w-1/2">
+        <div className="mt-12 lg:mt-72 bg-amber-200 border-l-4 border-amber-500 text-amber-900 p-4 rounded-lg gap-3 w-full lg:w-1/2 hidden md:flex">
           <p className="text-lg leading-relaxed">
             <span className="inline-flex items-center font-light text-amber-700">
               <BsExclamationTriangle className="mr-1 ml-1 h-5 w-5" />
@@ -33,7 +37,7 @@ export default function AdminLoginArea() {
         </div>
 
         {/* tips */}
-        <ul className="space-y-4 mt-8 lg:mt-32">
+        <ul className="space-y-4 mt-8 lg:mt-32 hidden md:block">
           {tips.map((item, i) => (
             <li key={i} className="flex items-center gap-3">
               <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-900 text-white font-bold">
@@ -46,9 +50,12 @@ export default function AdminLoginArea() {
             </li>
           ))}
         </ul>
+        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-30 mb-20">
+          <AdminLoginForm />
+        </div>
 
         {/* social medias */}
-        <div className="mt-8 lg:mt-82 bg-blue-800 rounded-2xl flex flex-wrap justify-evenly items-center w-fit gap-4 lg:gap-10 py-2 px-10">
+        <div className=" mx-auto md:ms-0 mt-8 lg:mt-82 bg-blue-800 rounded-2xl flex flex-wrap justify-evenly items-center w-fit gap-4 lg:gap-10 py-2 px-10">
           <Link
             href="https://t.me/yourUsername"
             target="_blank"
@@ -90,25 +97,20 @@ export default function AdminLoginArea() {
         </div>
 
         {/* copyright */}
-        <p className="text-black mt-8 lg:mt-5 text-base lg:text-xl">
+        <p className="text-black mt-8 lg:mt-5 text-base text-center md:text-right lg:text-xl">
           پورتال رسمی سازمان تامین اجتماعی: www.tamin.ir | مرکز تماس شبانه‌روزی:
           1420 | شبکه‌های اجتماعی: tamin_media@
         </p>
       </section>
 
       {/* left */}
-      <section className="w-full lg:w-4/5">
+      <section className="w-full lg:w-4/5 hidden md:block">
         <img
           src="/assets/img/taminLoginPic1.png"
           alt=""
           className="h-64 sm:h-96 lg:h-screen w-full object-cover"
         />
       </section>
-
-      {/* AdminLoginForm - Center Overlay */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 ">
-        <AdminLoginForm />
-      </div>
     </section>
   );
 }
