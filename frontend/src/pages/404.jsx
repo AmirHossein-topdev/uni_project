@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 // internal
 
@@ -10,9 +9,7 @@ const ErrorPage = () => {
         <div className="row justify-content-center">
           <div className="col-xl-6 col-lg-8 col-md-10">
             <div className="tp-error-content text-center">
-              <div className="tp-error-thumb">
-                <Image src={error} alt="error img" />
-              </div>
+              <div className="tp-error-thumb"></div>
 
               <h3 className="tp-error-title">Oops! Page not found</h3>
               <p>
