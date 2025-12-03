@@ -59,7 +59,7 @@ function MenuItem({ item, pathname, onClose, level = 0 }) {
       <li>
         <div
           className={`flex items-center justify-between rounded-lg p-2 hover:bg-gray-300 ${
-            isActive ? "bg-gray-300 text-green-800" : "text-gray-900"
+            isActive ? "bg-gray-300 text-green-800" : "text-white"
           }`}
           style={{ paddingRight }}
         >
@@ -103,8 +103,8 @@ function MenuItem({ item, pathname, onClose, level = 0 }) {
     <li>
       <Link
         href={item.href}
-        className={`flex items-center gap-3 rounded-lg p-2 hover:bg-gray-300 ${
-          isActive ? "bg-gray-800 text-green-400" : "text-gray-900"
+        className={`flex items-center gap-3 rounded-lg p-2 hover:bg-gray-800 hover:text-green-400 ${
+          isActive ? "bg-gray-800 text-green-400 bg-cyan200" : "text-white"
         }`}
         style={{ paddingRight }}
         onClick={onClose}
@@ -142,7 +142,7 @@ export default function Sidebar({ isMobileOpen, onClose }) {
   return (
     <div
       id="sidebar"
-      className={`fixed top-0 right-0 h-full w-56 z-50 bg-gray-100 text-white flex-col transition-transform duration-300 transform ${
+      className={`fixed top-0 right-0 h-full w-56 z-50 bg-gray-700 text-white flex-col transition-transform duration-300 transform ${
         isMobileOpen ? "translate-x-0" : "translate-x-full"
       } lg:translate-x-0 lg:flex`}
     >
@@ -154,12 +154,12 @@ export default function Sidebar({ isMobileOpen, onClose }) {
           <FaStore />
           <span className="sidebar-title">پنل مدیریت</span>
         </div>
-        <button onClick={onClose} className="lg:hidden text-2xl text-gray-300">
+        <button onClick={onClose} className="lg:hidden text-2xl text-white">
           <FaTimes />
         </button>
       </div>
 
-      <ul className="mt-4 space-y-2 px-2">
+      <ul className="mt-4 space-y-2 px-2 text-white">
         {menuItems.map((item, i) => (
           <MenuItem key={i} item={item} pathname={pathname} onClose={onClose} />
         ))}
