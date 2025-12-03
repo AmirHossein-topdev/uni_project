@@ -54,7 +54,7 @@ export default function AdminLoginArea() {
           </ul>
         </div>
         {/* form */}{" "}
-        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-10 mb-5">
+        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-19 mb-5">
           {" "}
           <AdminLoginForm />{" "}
         </div>
