@@ -3,7 +3,6 @@
 import DashboardLayout from "../../../../layout";
 import React, { useState, useCallback, useEffect } from "react";
 import { useGetShowCategoryQuery } from "../../../../../../redux/features/categoryApi";
-import { useGetActiveBrandsQuery } from "../../../../../../redux/features/ownerApi";
 import { useRouter } from "next/router";
 import CategoryBrandSelector from "../../../../components/products/CategoryBrandSelector";
 import ProductTagsBox from "../../../../components/products/ProductTagsBox";
@@ -20,8 +19,6 @@ const EditProductDashboard = () => {
   const { id } = router.query; // گرفتن id از query
   const { data: categories = [], isLoading: loadingCategories } =
     useGetShowCategoryQuery();
-  const { data: brands = [], isLoading: loadingBrands } =
-    useGetActiveBrandsQuery();
 
   const [product, setProduct] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
