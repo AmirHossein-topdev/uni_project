@@ -50,7 +50,8 @@ export default function AdminLoginArea() {
             </li>
           ))}
         </ul>
-        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-30 mb-20">
+        {/* form */}
+        <div className="md:fixed inset-0 flex items-center justify-center z-50 p-4 mt-15 mb-20">
           <AdminLoginForm />
         </div>
 
