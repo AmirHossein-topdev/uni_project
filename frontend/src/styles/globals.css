@@ -27,6 +27,13 @@ body {
   font-family: Vazir;
   direction: rtl;
 }
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #111827 inset !important; /* bg-gray-900 */
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
 
 .newsletter-description {
   color: #243241;

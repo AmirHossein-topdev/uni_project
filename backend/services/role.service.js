@@ -1,4 +1,5 @@
-const Role = require("../model/Role");
+// const { Role } = require("../model/Role");
+const Role = require("../model/Role"); // حالا Role.find() درست کار میکنه
 
 class RoleService {
   // ایجاد نقش جدید
@@ -65,7 +66,7 @@ class RoleService {
     const query = {};
     if (status) query.status = status;
 
-    const roles = await Role.find(query)
+    const roles = await Role.find(query) // ← این خط
       .populate("users")
       .skip((page - 1) * limit)
       .limit(limit)

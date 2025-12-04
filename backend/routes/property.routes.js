@@ -1,6 +1,6 @@
 // backend/routes/property.routes.js
 const express = require("express");
-const uploader = require("../middleware/uploader.js");
+const createUploader = require("../middleware/uploader.js"); // ← تابع سازنده
 const router = express.Router();
 const PropertyController = require("../controller/property.controller");
 
@@ -18,25 +18,33 @@ const roleMiddleware = (roles) => (req, res, next) => {
   next();
 };
 
+// ایجاد uploader مخصوص ملک‌ها
+const propertyUpload = createUploader("properties"); // ← instance multer
+
 // ایجاد ملک جدید
 router.post(
   "/add",
   authMiddleware,
   roleMiddleware(["admin", "agent"]),
-  uploader.fields([
+  propertyUpload.fields([
     { name: "mainImage", maxCount: 1 },
     { name: "gallery", maxCount: 10 },
   ]),
   PropertyController.createProperty
 );
+
 // دریافت ملک با آی‌دی
 router.get("/:id", authMiddleware, PropertyController.getPropertyById);
 
-// آپدیت ملک
+// آپدیت ملک (می‌توان تصویر جدید هم آپلود کرد)
 router.put(
   "/:id",
   authMiddleware,
   roleMiddleware(["admin", "agent"]),
+  propertyUpload.fields([
+    { name: "mainImage", maxCount: 1 },
+    { name: "gallery", maxCount: 10 },
+  ]),
   PropertyController.updateProperty
 );
 
@@ -44,7 +52,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin"]),
+  roleMiddleware(["admin", "agent"]),
   PropertyController.deleteProperty
 );
 

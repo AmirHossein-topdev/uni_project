@@ -1,64 +1,59 @@
-require('dotenv').config();
+// backend/seed.js
+require("dotenv").config(); // بارگذاری مقادیر از .env
+const mongoose = require("mongoose");
+const User = require("./model/User");
+const Role = require("./model/Role");
 
-const connectDB = require('./config/db');
-
-const Brand = require('./model/Brand');
-const brandData = require('./utils/brands');
-
-const Category = require('./model/Category');
-const categoryData = require('./utils/categories');
-
-const Products = require('./model/Products');
-const productsData = require('./utils/products');
-
-const Coupon = require('./model/Coupon');
-const couponData = require('./utils/coupons');
-
-const Order = require('./model/Order');
-const orderData = require('./utils/orders');
-
-const User = require('./model/User');
-const userData = require('./utils/users');
-
-const Reviews = require('./model/Review');
-const reviewsData = require('./utils/reviews');
-
-const Admin = require('./model/Admin');
-const adminData = require('./utils/admin');
-
-connectDB();
-const importData = async () => {
+const seedData = async () => {
   try {
-    await Brand.deleteMany();
-    await Brand.insertMany(brandData);
+    // اتصال به MongoDB
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("MongoDB connected");
 
-    await Category.deleteMany();
-    await Category.insertMany(categoryData);
+    // بررسی اینکه نقش Admin وجود دارد یا نه
+    let adminRole = await Role.findOne({ name: "Admin" });
+    if (!adminRole) {
+      adminRole = await Role.create({
+        name: "Admin",
+        description: "مدیر سیستم با دسترسی کامل",
+        permissions: ["all"],
+      });
+      console.log("Admin role created");
+    }
 
-    await Products.deleteMany();
-    await Products.insertMany(productsData);
+    // بررسی اینکه کاربر از قبل وجود ندارد
+    const existingUser = await User.findOne({ employeeCode: "0110486986" });
+    if (existingUser) {
+      console.log("User already exists");
+      process.exit();
+    }
 
-    await Coupon.deleteMany();
-    await Coupon.insertMany(couponData);
-    
-    await Order.deleteMany();
-    await Order.insertMany(orderData);
-    
-    await User.deleteMany();
-    await User.insertMany(userData);
-    
-    await Reviews.deleteMany();
-    await Reviews.insertMany(reviewsData);
-    
-    await Admin.deleteMany();
-    await Admin.insertMany(adminData);
+    // ساخت کاربر
+    const user = await User.create({
+      name: "امیرحسین محسنی فر",
+      email: "mohsenifar1383@gmail.com", // ایمیل اضافه شد
+      employeeCode: "01104869860000000",
+      password: "12345678", // هش توسط pre("save") انجام می‌شود
+      role: adminRole._id,
+      contactNumber: "09301306552",
+      address: "تهران قرچک خیابان رجایی کوچه رجایی ۱۵ پلاک ۱۹ واحد ۱",
+      profileImage: "", // مسیر فایل پروفایل در صورت نیاز
+      status: "active",
+    });
 
-    console.log('data inserted successfully!');
+    // اضافه کردن کاربر به آرایه users نقش
+    adminRole.users.push(user._id);
+    await adminRole.save();
+
+    console.log("User created successfully");
     process.exit();
-  } catch (error) {
-    console.log('error', error);
+  } catch (err) {
+    console.error("Seed error:", err);
     process.exit(1);
   }
 };
 
-importData();
+seedData();

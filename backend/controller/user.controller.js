@@ -1,28 +1,86 @@
 // backend/controller/user.controller.js
 const UserService = require("../services/user.service");
+const Role = require("../model/Role");
 
 class UserController {
-  // ایجاد کاربر جدید
+  // =======================
+  // ✅ ایجاد کاربر با عکس
+  // =======================
   async createUser(req, res) {
     try {
-      const user = await UserService.createUser(req.body);
+      console.log("=== req.body ===", req.body);
+      console.log("=== req.file ===", req.file);
+
+      // تبدیل نقش رشته‌ای به ObjectId
+      if (typeof req.body.role === "string") {
+        const roleDoc = await Role.findOne({ name: req.body.role });
+        if (!roleDoc) return res.status(400).json({ message: "Invalid role" });
+        req.body.role = roleDoc._id;
+      }
+
+      // آماده‌سازی داده‌ها و اضافه کردن مسیر تصویر
+      const userData = {
+        name: req.body.name,
+        employeeCode: req.body.employeeCode,
+        password: req.body.password,
+        email: req.body.email, // ← مهم‌ترین بخش
+        role: req.body.role,
+        contactNumber: req.body.contactNumber,
+        address: req.body.address,
+        status: req.body.status || "active",
+        profileImage: req.file ? `/images/users/${req.file.filename}` : null,
+      };
+
+      console.log("User data before saving:", userData);
+      const user = await UserService.createUser(userData);
+
       res.status(201).json({ success: true, data: user });
     } catch (err) {
+      console.error("=== CREATE USER ERROR ===", err);
       res.status(400).json({ success: false, message: err.message });
     }
   }
 
-  // دریافت کاربر با ایمیل
-  async getUserByEmail(req, res) {
+  // =======================
+  // ✅ آپدیت کاربر با امکان تغییر تصویر
+  // =======================
+  async updateUser(req, res) {
     try {
-      const user = await UserService.getUserByEmail(req.params.email);
+      // اگر نقش رشته‌ای است، ObjectId کن
+      if (typeof req.body.role === "string") {
+        const roleDoc = await Role.findOne({ name: req.body.role });
+        if (!roleDoc) return res.status(400).json({ message: "Invalid role" });
+        req.body.role = roleDoc._id;
+      }
+
+      // اگر فایلی آپلود شد، مسیر آن را اضافه کن
+      if (req.file) {
+        req.body.profileImage = `/images/users/${req.file.filename}`;
+      }
+
+      const updatedUser = await UserService.updateUser(req.params.id, req.body);
+      res.json({ success: true, data: updatedUser });
+    } catch (err) {
+      console.error("=== UPDATE USER ERROR ===", err);
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  // =======================
+  // ✅ دریافت کاربر با employeeCode
+  // =======================
+  async getUserByEmployeeCode(req, res) {
+    try {
+      const user = await UserService.getUserByEmployeeCode(req.params.code);
       res.json({ success: true, data: user });
     } catch (err) {
       res.status(404).json({ success: false, message: err.message });
     }
   }
 
-  // دریافت کاربر با آی‌دی
+  // =======================
+  // ✅ دریافت کاربر با ID
+  // =======================
   async getUserById(req, res) {
     try {
       const user = await UserService.getUserById(req.params.id);
@@ -32,17 +90,9 @@ class UserController {
     }
   }
 
-  // آپدیت کاربر
-  async updateUser(req, res) {
-    try {
-      const updatedUser = await UserService.updateUser(req.params.id, req.body);
-      res.json({ success: true, data: updatedUser });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
-  }
-
-  // حذف کاربر
+  // =======================
+  // ✅ حذف کاربر
+  // =======================
   async deleteUser(req, res) {
     try {
       const deletedUser = await UserService.deleteUser(req.params.id);
@@ -52,7 +102,9 @@ class UserController {
     }
   }
 
-  // بررسی پسورد
+  // =======================
+  // ✅ بررسی پسورد کاربر
+  // =======================
   async verifyPassword(req, res) {
     try {
       const { password } = req.body;
@@ -64,22 +116,26 @@ class UserController {
     }
   }
 
-  // تولید توکن تایید ایمیل
-  async generateConfirmationToken(req, res) {
+  // =======================
+  // ✅ تولید توکن ریست رمز عبور
+  // =======================
+  async generatePasswordResetToken(req, res) {
     try {
       const user = await UserService.getUserById(req.params.id);
-      const token = await UserService.generateConfirmationToken(user);
+      const token = await UserService.generatePasswordResetToken(user);
       res.json({ success: true, token });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });
     }
   }
 
-  // ریست پسورد با توکن
+  // =======================
+  // ✅ ریست پسورد با توکن
+  // =======================
   async resetPassword(req, res) {
     try {
       const { token, newPassword } = req.body;
-      const user = await UserService.getUserByConfirmationToken(token);
+      const user = await UserService.getUserByResetToken(token);
       await UserService.resetPassword(user, newPassword);
       res.json({ success: true, message: "Password reset successful" });
     } catch (err) {
@@ -87,18 +143,24 @@ class UserController {
     }
   }
 
-  // تغییر وضعیت کاربر
+  // =======================
+  // ✅ تغییر وضعیت کاربر
+  // =======================
   async changeUserStatus(req, res) {
     try {
-      const { status } = req.body;
-      const user = await UserService.changeUserStatus(req.params.id, status);
+      const user = await UserService.changeUserStatus(
+        req.params.id,
+        req.body.status
+      );
       res.json({ success: true, data: user });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });
     }
   }
 
-  // لیست کاربران با فیلتر و pagination
+  // =======================
+  // ✅ لیست کاربران با فیلتر و صفحه‌بندی
+  // =======================
   async listUsers(req, res) {
     try {
       const { page, limit, status, role } = req.query;
@@ -115,4 +177,5 @@ class UserController {
   }
 }
 
+// فقط کنترلر صادر می‌شود؛ middleware آپلود در روت جدا مدیریت می‌شود
 module.exports = new UserController();

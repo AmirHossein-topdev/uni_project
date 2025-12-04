@@ -1,28 +1,24 @@
+// frontend/src/redux/store.js
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./api/apiSlice";
+import { roleApi } from "./features/RoleApi";
+
+// slices
 import authSlice from "./features/auth/authSlice";
-import cartSlice from "./features/cartSlice";
-import compareSlice from "./features/compareSlice";
-import productModalSlice from "./features/productModalSlice";
-import shopFilterSlice from "./features/shop-filter-slice";
-import wishlistSlice from "./features/wishlist-slice";
-import couponSlice from "./features/coupon/couponSlice";
-import orderSlice from "./features/order/orderSlice";
 
 const store = configureStore({
   reducer: {
-    [apiSlice.reducerPath]: apiSlice.reducer,
-    auth:authSlice,
-    productModal:productModalSlice,
-    shopFilter:shopFilterSlice,
-    cart:cartSlice,
-    wishlist:wishlistSlice,
-    compare:compareSlice,
-    coupon:couponSlice,
-    order:orderSlice,
+    [apiSlice.reducerPath]: apiSlice.reducer, // RTK Query base
+    [roleApi.reducerPath]: roleApi.reducer, // Role API
+    auth: authSlice, // Auth slice
   },
+
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
+    getDefaultMiddleware()
+      .concat(apiSlice.middleware)
+      .concat(roleApi.middleware),
+
+  devTools: process.env.NODE_ENV !== "production",
 });
 
 export default store;

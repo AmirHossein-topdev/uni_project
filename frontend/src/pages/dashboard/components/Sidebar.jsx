@@ -29,7 +29,7 @@ const menuItems = [
   {
     label: "کاربران",
     icon: <FaUsers />,
-    href: "/dashboard/users",
+    href: "/dashboard/main/users",
   },
 ];
 

@@ -1,5 +1,16 @@
+// backend\model\Role.js
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema.Types;
+
+// مقادیر ثابت نقش‌ها
+const ROLE_NAMES = [
+  "Admin",
+  "Manager",
+  "Agent",
+  "Customer Support",
+  "Accountant",
+  "Inspector",
+];
 
 const roleSchema = mongoose.Schema(
   {
@@ -10,6 +21,7 @@ const roleSchema = mongoose.Schema(
       trim: true,
       unique: true,
       maxLength: 50,
+      enum: ROLE_NAMES, // فقط این گزینه‌ها مجاز هستند
     },
     // توضیح نقش
     description: {
@@ -24,7 +36,6 @@ const roleSchema = mongoose.Schema(
       default: [], // اگر Admin هست می‌تونه "all" باشه
       validate: {
         validator: function (arr) {
-          // آرایه خالی یا "all" یا از مجموعه مجاز باشه
           const allowed = [
             "read_properties",
             "create_properties",
@@ -63,5 +74,4 @@ const roleSchema = mongoose.Schema(
 );
 
 const Role = mongoose.model("Role", roleSchema);
-
-module.exports = Role;
+module.exports = Role; // نه یک آبجکت
