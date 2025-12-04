@@ -1,7 +1,7 @@
 // frontend/src/redux/store.js
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./api/apiSlice";
-import { roleApi } from "./features/RoleApi";
+import { roleApi } from "./features/roleApi";
 
 // slices
 import authSlice from "./features/auth/authSlice";
