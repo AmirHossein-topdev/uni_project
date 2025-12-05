@@ -1,85 +1,65 @@
 import { apiSlice } from "@/redux/api/apiSlice";
 import { userLoggedIn } from "./authSlice";
 import Cookies from "js-cookie";
+import Swal from "sweetalert2";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const authApi = apiSlice.injectEndpoints({
   overrideExisting: true,
   endpoints: (builder) => ({
-    registerUser: builder.mutation({
-      query: (data) => ({
-        url: `${BASE_URL}/user/signup`,
-        method: "POST",
-        body: data,
-      }),
-    }),
-    // signUpProvider
-    signUpProvider: builder.mutation({
-      query: (token) => ({
-        url: `${BASE_URL}/user/register/${token}`,
-        method: "POST",
-      }),
-
-      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-        try {
-          const result = await queryFulfilled;
-
-          Cookies.set(
-            "userInfo",
-            JSON.stringify({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
-            }),
-            { expires: 0.5 }
-          );
-
-          dispatch(
-            userLoggedIn({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
-            })
-          );
-        } catch (err) {
-          // do nothing
-        }
-      },
-    }),
-    // login
+    // ===============================
+    // 🔹 Login User
+    // ===============================
     loginUser: builder.mutation({
       query: (data) => ({
-        url: `${BASE_URL}/user/login`,
+        url: `${BASE_URL}/auth/login`,
         method: "POST",
         body: data,
       }),
-
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
 
+          // ذخیره در Cookies
           Cookies.set(
             "userInfo",
             JSON.stringify({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
+              accessToken: result.data.token,
+              user: result.data.user,
             }),
-            { expires: 0.5 }
+            { expires: 1 }
           );
 
+          // ذخیره در Redux
           dispatch(
             userLoggedIn({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
+              accessToken: result.data.token,
+              user: result.data.user,
             })
           );
+
+          // پیام موفقیت
+          Swal.fire({
+            icon: "success",
+            title: "ورود موفقیت‌آمیز بود",
+          });
         } catch (err) {
-          // do nothing
+          // پیام خطا
+          Swal.fire({
+            icon: "error",
+            title: "ورود موفقیت‌آمیز نبود",
+            text: err?.error?.data?.message || "اطلاعات اشتباه است",
+          });
         }
       },
     }),
-    // get me
+
+    // ===============================
+    // 🔹 Get Current User
+    // ===============================
     getUser: builder.query({
       query: () => `${BASE_URL}/user/me`,
-
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
@@ -89,14 +69,16 @@ export const authApi = apiSlice.injectEndpoints({
             })
           );
         } catch (err) {
-          // do nothing
+          console.error("Get user failed:", err);
         }
       },
     }),
-    // confirmEmail
+
+    // ===============================
+    // 🔹 Confirm Email
+    // ===============================
     confirmEmail: builder.query({
       query: (token) => `${BASE_URL}/user/confirmEmail/${token}`,
-
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
@@ -104,24 +86,27 @@ export const authApi = apiSlice.injectEndpoints({
           Cookies.set(
             "userInfo",
             JSON.stringify({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
+              accessToken: result.data.token,
+              user: result.data.user,
             }),
             { expires: 0.5 }
           );
 
           dispatch(
             userLoggedIn({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
+              accessToken: result.data.token,
+              user: result.data.user,
             })
           );
         } catch (err) {
-          // do nothing
+          console.error("Confirm email failed:", err);
         }
       },
     }),
-    // reset password
+
+    // ===============================
+    // 🔹 Reset Password
+    // ===============================
     resetPassword: builder.mutation({
       query: (data) => ({
         url: `${BASE_URL}/user/forget-password`,
@@ -129,7 +114,10 @@ export const authApi = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
-    // confirmForgotPassword
+
+    // ===============================
+    // 🔹 Confirm Forgot Password
+    // ===============================
     confirmForgotPassword: builder.mutation({
       query: (data) => ({
         url: `${BASE_URL}/user/confirm-forget-password`,
@@ -137,7 +125,10 @@ export const authApi = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
-    // change password
+
+    // ===============================
+    // 🔹 Change Password
+    // ===============================
     changePassword: builder.mutation({
       query: (data) => ({
         url: `${BASE_URL}/user/change-password`,
@@ -145,14 +136,16 @@ export const authApi = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
-    // updateProfile password
+
+    // ===============================
+    // 🔹 Update Profile
+    // ===============================
     updateProfile: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${BASE_URL}/user/update-user/${id}`,
         method: "PUT",
         body: data,
       }),
-
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
@@ -160,20 +153,20 @@ export const authApi = apiSlice.injectEndpoints({
           Cookies.set(
             "userInfo",
             JSON.stringify({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
+              accessToken: result.data.token,
+              user: result.data.user,
             }),
             { expires: 0.5 }
           );
 
           dispatch(
             userLoggedIn({
-              accessToken: result.data.data.token,
-              user: result.data.data.user,
+              accessToken: result.data.token,
+              user: result.data.user,
             })
           );
         } catch (err) {
-          // do nothing
+          console.error("Update profile failed:", err);
         }
       },
     }),
@@ -182,11 +175,10 @@ export const authApi = apiSlice.injectEndpoints({
 
 export const {
   useLoginUserMutation,
-  useRegisterUserMutation,
+  useGetUserQuery,
   useConfirmEmailQuery,
   useResetPasswordMutation,
   useConfirmForgotPasswordMutation,
   useChangePasswordMutation,
   useUpdateProfileMutation,
-  useSignUpProviderMutation,
 } = authApi;

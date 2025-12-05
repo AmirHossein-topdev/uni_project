@@ -4,175 +4,165 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import ReCAPTCHA from "react-google-recaptcha"; // 🔹 اضافه شدن ریکپچا
+import ReCAPTCHA from "react-google-recaptcha";
 
-// internal
 import { CloseEye, OpenEye } from "@/svg";
 import ErrorMsg from "../common/error-msg";
-import { useLoginAdminMutation } from "@/redux/features/auth/adminApi";
 import { notifyError, notifySuccess } from "@/utils/toast";
 
-// ✅ اعتبارسنجی فارسی شده
+// 🔹 ایمپورت از authApi.js
+import { useLoginUserMutation } from "@/redux/features/auth/authApi";
+
+// 🟦 اعتبارسنجی جدید مخصوص employeeCode
 const schema = Yup.object().shape({
-  email: Yup.string()
-    .required("لطفا ایمیل را وارد کنید")
-    .email("فرمت ایمیل صحیح نمی‌باشد")
-    .label("ایمیل"),
+  employeeCode: Yup.string()
+    .required("لطفا کد سازمانی را وارد کنید")
+    .matches(/^[0-9]{6,12}$/, "کد سازمانی معتبر نیست"),
   password: Yup.string()
-    .required("لطفا رمز عبور را وارد کنید")
-    .min(6, "رمز عبور باید حداقل ۶ کاراکتر باشد")
-    .label("رمز عبور"),
+    .required("رمز عبور الزامی است")
+    .min(6, "رمز عبور باید حداقل ۶ کاراکتر باشد"),
 });
 
 const AdminLoginForm = () => {
   const [showPass, setShowPass] = useState(false);
-  const [captchaValue, setCaptchaValue] = useState(null); // 🔹 استیت کپچا
-  const [loginAdmin, { isLoading }] = useLoginAdminMutation();
+  const [captchaValue, setCaptchaValue] = useState(null);
+
+  // 🔹 فقط از useLoginUserMutation استفاده می‌کنیم
+  const [loginUser, { isLoading }] = useLoginUserMutation();
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  // 🔹 هندل کردن تغییر کپچا
   const onCaptchaChange = (value) => {
     setCaptchaValue(value);
   };
 
-  // ✅ ارسال فرم
-  const onSubmit = (data) => {
-    // 🔹 بررسی کپچا قبل از ارسال
+  const onSubmit = async (data) => {
+    console.log("🚀 onSubmit called with data:", data);
+    console.log("🚀 captchaValue:", captchaValue);
+
     if (!captchaValue) {
+      console.log("❌ captcha not verified");
       notifyError("لطفا تأیید کنید که ربات نیستید!");
       return;
     }
 
-    loginAdmin({
-      email: data.email,
-      password: data.password,
-      // captchaToken: captchaValue // اگر بک‌اند نیاز به توکن دارد، این خط را فعال کنید
-    }).then((res) => {
-      if (res?.data) {
-        notifySuccess("ورود موفقیت‌آمیز بود!");
-        router.push("/admin/dashboard");
-      } else {
-        notifyError(res?.error?.data?.error || "ورود ناموفق بود");
-      }
-    });
-    // reset(); // معمولاً در صورت خطا نباید فرم کامل پاک شود، اما طبق کد شما گذاشتم بماند
+    try {
+      console.log("🔹 Sending login request to backend...");
+      const res = await loginUser({
+        email: data.employeeCode, // یا employeeCode بسته به backend
+        password: data.password,
+      }).unwrap();
+
+      console.log("✅ Backend response:", res);
+
+      // موفقیت
+      notifySuccess("ورود با موفقیت انجام شد!");
+      console.log("🚀 Redirecting to /dashboard");
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("❌ Login failed with error:", err);
+
+      const message =
+        err?.data?.error ||
+        err?.data?.message ||
+        err?.error ||
+        "ورود موفق نبود. لطفا مجددا تلاش کنید.";
+
+      console.log("❌ Showing error message:", message);
+      notifyError(message);
+    }
   };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-full max-w-md mx-auto space-y-6 bg-white shadow-2xl  h-fit p-5 rounded-2xl"
-      dir="rtl" // 🔹 راست‌چین کردن کل فرم
+      className="w-full max-w-md mx-auto space-y-6 bg-white shadow-2xl p-6 rounded-2xl"
+      dir="rtl"
     >
       <h2 className="text-blue-900 text-center text-2xl font-black">
-        ورودبه سامانه{" "}
+        ورود به سامانه مدیریت
       </h2>
-      {/* --- ایمیل --- */}
+
+      {/* کد سازمانی */}
       <div className="space-y-2">
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-black "
-        ></label>
-        <div className="relative">
-          <input
-            {...register("email")}
-            name="email"
-            id="email"
-            type="email"
-            dir="rtl"
-            placeholder="نام کاربری"
-            className={`w-full px-4 py-3 rounded-lg border bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent  ${
-              errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
-            }`}
-          />
-        </div>
-        <div className="text-right">
-          <ErrorMsg msg={errors.email?.message} />
-        </div>
+        <input
+          {...register("employeeCode")}
+          type="text"
+          placeholder="کد سازمانی"
+          className={`w-full px-4 py-3 rounded-lg border text-gray-900 
+            ${
+              errors.employeeCode
+                ? "border-red-500 bg-red-50"
+                : "border-gray-300"
+            }
+            focus:ring-2 focus:ring-blue-500 outline-none`}
+        />
+        <ErrorMsg msg={errors.employeeCode?.message} />
       </div>
 
-      {/* --- پسورد --- */}
+      {/* پسورد */}
       <div className="space-y-2">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-black "
-        ></label>
         <div className="relative">
           <input
             {...register("password")}
-            id="password"
             type={showPass ? "text" : "password"}
-            placeholder="گذرواژه"
-            className={`w-full px-4 py-3 pl-12 rounded-lg border bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
-            }`}
+            placeholder="رمز عبور"
+            className={`w-full px-4 py-3 rounded-lg border text-gray-900 
+              ${
+                errors.password ? "border-red-500 bg-red-50" : "border-gray-300"
+              }
+              focus:ring-2 focus:ring-blue-500 outline-none`}
           />
-          {/* آیکون چشم (در حالت راست‌چین باید سمت چپ باشد) */}
+
           <div
-            className="absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-blue-600 transition-colors"
+            className="absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer hover:text-blue-600"
             onClick={() => setShowPass(!showPass)}
           >
             {showPass ? <CloseEye /> : <OpenEye />}
           </div>
         </div>
-        <div className="text-right">
-          <ErrorMsg msg={errors.password?.message} />
-        </div>
+        <ErrorMsg msg={errors.password?.message} />
       </div>
 
-      {/* --- گزینه‌ها (مرا به خاطر بسپار & فراموشی رمز) --- */}
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center">
-          <input
-            id="remeber"
-            type="checkbox"
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer ml-2" // ml-2 برای فاصله در راست‌چین
-          />
-          <label
-            htmlFor="remeber"
-            className="block text-gray-600 cursor-pointer select-none hover:text-gray-900"
-          >
-            مرا به خاطر بسپار
-          </label>
-        </div>
-        <div>
-          <Link
-            href="/admin/forgot"
-            className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-          >
-            رمز عبور را فراموش کردید؟
-          </Link>
-        </div>
+      {/* گزینه‌ها */}
+      <div className="flex items-center justify-between text-sm mt-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" className="h-4 w-4 text-blue-600" />
+          <span className="text-gray-600">مرا به خاطر بسپار</span>
+        </label>
+
+        <Link
+          href="/admin/forgot"
+          className="text-blue-600 font-medium hover:text-blue-800 transition"
+        >
+          فراموشی رمز عبور؟
+        </Link>
       </div>
 
-      {/* --- کپچا (ReCAPTCHA) --- */}
+      {/* کپچا */}
       <div className="flex justify-center">
         <ReCAPTCHA
-          sitekey="6LdnLyAsAAAAANcQ13SwbVVzuOhdHmjmbDiyGnkK" // 👈 کلید سایت خود را اینجا بگذارید
+          sitekey="6LdnLyAsAAAAANcQ13SwbVVzuOhdHmjmbDiyGnkK"
           onChange={onCaptchaChange}
-          hl="fa" // 🔹 زبان کپچا فارسی
+          hl="fa"
         />
       </div>
 
-      {/* --- دکمه ورود --- */}
-      <div className="pt-2">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {isLoading ? "در حال ورود..." : "ورود به پنل مدیریت"}
-        </button>
-      </div>
+      {/* دکمه ورود */}
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow disabled:opacity-60"
+      >
+        {isLoading ? "در حال ورود..." : "ورود"}
+      </button>
     </form>
   );
 };

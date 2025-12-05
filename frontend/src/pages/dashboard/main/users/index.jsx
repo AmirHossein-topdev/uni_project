@@ -43,7 +43,7 @@ const UserCard = ({ user, index, handleDelete }) => {
               {user.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              #{index + 1} - {user.role}
+              #{index + 1} - {user.role.name}
             </p>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function UsersPage() {
                     <td className="py-3 px-4">{user.employeeCode}</td>
                     <td className="py-3 px-4">{user.contactNumber || "-"}</td>
                     <td className="py-3 px-4">{user.address || "-"}</td>
-                    <td className="py-3 px-4">{user.role}</td>
+                    <td className="py-3 px-4">{user.role.name}</td>
                     <td className="py-3 px-4">{user.status}</td>
                     <td className="py-3 px-4">
                       {user.passwordChangedAt
