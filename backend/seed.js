@@ -35,8 +35,8 @@ const seedData = async () => {
     const user = await User.create({
       name: "امیرحسین محسنی فر",
       email: "mohsenifar1383@gmail.com", // ایمیل اضافه شد
-      employeeCode: "01104869860000000",
-      password: "12345678", // هش توسط pre("save") انجام می‌شود
+      employeeCode: "0110486986",
+      password: "amir1383", // هش توسط pre("save") انجام می‌شود
       role: adminRole._id,
       contactNumber: "09301306552",
       address: "تهران قرچک خیابان رجایی کوچه رجایی ۱۵ پلاک ۱۹ واحد ۱",

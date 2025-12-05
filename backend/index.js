@@ -40,6 +40,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/contracts", contractRoutes);
+console.log("🔹 Registering auth routes at /api/auth");
 app.use("/api/auth", require("./routes/auth.routes"));
 
 // اجازه به دسترسی به فایل‌های آپلود شده
