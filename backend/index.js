@@ -17,7 +17,6 @@ const contractRoutes = require("./routes/contract.routes");
 
 // --- Middleware ---
 const globalErrorHandler = require("./middleware/global-error-handler");
-const authMiddleware = require("./middleware/auth"); // اگر میخوای JWT یا session validation بذاری
 
 const app = express();
 const PORT = process.env.PORT || 7000;
@@ -40,7 +39,6 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/contracts", contractRoutes);
-console.log("🔹 Registering auth routes at /api/auth");
 app.use("/api/auth", require("./routes/auth.routes"));
 
 // اجازه به دسترسی به فایل‌های آپلود شده

@@ -1,6 +1,7 @@
 // backend/controller/user.controller.js
 const UserService = require("../services/user.service");
 const Role = require("../model/Role");
+const bcrypt = require("bcryptjs");
 
 class UserController {
   // =======================
@@ -53,9 +54,17 @@ class UserController {
         req.body.role = roleDoc._id;
       }
 
-      // اگر فایلی آپلود شد، مسیر آن را اضافه کن
+      // اگر فایلی آپلود شد
       if (req.file) {
         req.body.profileImage = `/images/users/${req.file.filename}`;
+      }
+
+      // 🔥 اگر پسورد جدید فرستاده شده بود → هش کن
+      if (!req.body.password || req.body.password.trim() === "") {
+        delete req.body.password;
+      } else {
+        // 🔥 اگر پسورد خالی بود → نذار مقدارش آپدیت بشه
+        delete req.body.password;
       }
 
       const updatedUser = await UserService.updateUser(req.params.id, req.body);

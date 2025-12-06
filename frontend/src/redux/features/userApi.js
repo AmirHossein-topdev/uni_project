@@ -1,3 +1,4 @@
+// frontend/redux/features/userApi.js
 import { apiSlice } from "../api/apiSlice";
 
 export const userApi = apiSlice.injectEndpoints({
@@ -5,27 +6,28 @@ export const userApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createUser: builder.mutation({
       query: (userData) => ({
-        url: "users/",
+        url: `users/`,
         method: "POST",
         body: userData,
       }),
       invalidatesTags: [{ type: "User", id: "LIST" }],
     }),
     getUserByEmployeeCode: builder.query({
-      query: (code) => `/employee/${code}`,
+      query: (code) => `users/employee/${code}`,
       transformResponse: (response) => response.data || {},
       providesTags: (result, error, code) => [{ type: "User", id: code }],
     }),
     getUserById: builder.query({
-      query: (id) => `/${id}`,
+      query: (id) => `users/${id}`,
       transformResponse: (response) => response.data || {},
       providesTags: (result, error, id) => [{ type: "User", id }],
     }),
     updateUser: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/${id}`,
+      // شکل ورودی: { id, formData }
+      query: ({ id, formData }) => ({
+        url: `users/${id}`,
         method: "PUT",
-        body: data,
+        body: formData, // body باید FormData باشه
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "User", id },
@@ -34,14 +36,14 @@ export const userApi = apiSlice.injectEndpoints({
     }),
     deleteUser: builder.mutation({
       query: (id) => ({
-        url: `/${id}`,
+        url: `users/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: [{ type: "User", id: "LIST" }],
     }),
     changeUserStatus: builder.mutation({
       query: ({ id, status }) => ({
-        url: `/${id}/status`,
+        url: `users/${id}/status`,
         method: "PATCH",
         body: { status },
       }),
@@ -57,9 +59,9 @@ export const userApi = apiSlice.injectEndpoints({
         params.append("limit", limit);
         if (status) params.append("status", status);
         if (role) params.append("role", role);
-        return `/users?${params.toString()}`;
+        return `users?${params.toString()}`;
       },
-      transformResponse: (response) => response.data?.users || [], // آرایه امن
+      transformResponse: (response) => response.data?.users || [],
       providesTags: (result) =>
         Array.isArray(result)
           ? [

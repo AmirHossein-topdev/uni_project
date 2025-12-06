@@ -44,27 +44,19 @@ const AdminLoginForm = () => {
   };
 
   const onSubmit = async (data) => {
-    console.log("🚀 onSubmit called with data:", data);
-    console.log("🚀 captchaValue:", captchaValue);
-
     if (!captchaValue) {
-      console.log("❌ captcha not verified");
       notifyError("لطفا تأیید کنید که ربات نیستید!");
       return;
     }
 
     try {
-      console.log("🔹 Sending login request to backend...");
       const res = await loginUser({
-        email: data.employeeCode, // یا employeeCode بسته به backend
+        employeeCode: data.employeeCode, // یا employeeCode بسته به backend
         password: data.password,
       }).unwrap();
 
-      console.log("✅ Backend response:", res);
-
       // موفقیت
       notifySuccess("ورود با موفقیت انجام شد!");
-      console.log("🚀 Redirecting to /dashboard");
       router.push("/dashboard");
     } catch (err) {
       console.error("❌ Login failed with error:", err);
@@ -75,7 +67,6 @@ const AdminLoginForm = () => {
         err?.error ||
         "ورود موفق نبود. لطفا مجددا تلاش کنید.";
 
-      console.log("❌ Showing error message:", message);
       notifyError(message);
     }
   };

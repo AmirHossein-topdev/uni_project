@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import Link from "next/link";
 import DashboardLayout from "../../layout";
+import Swal from "sweetalert2";
 
 // کارت کاربران برای موبایل
 const UserCard = ({ user, index, handleDelete }) => {
@@ -94,19 +95,30 @@ const UserCard = ({ user, index, handleDelete }) => {
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { data, isLoading, isError, refetch } = useListUsersQuery();
-  const users = Array.isArray(data) ? data : [];
-
   const [deleteUser] = useDeleteUserMutation();
 
+  const users = Array.isArray(data) ? data : [];
+
+  // تابع حذف کاربر با SweetAlert2
   const handleDelete = async (id) => {
-    if (window.confirm("آیا از حذف این کاربر مطمئن هستید؟")) {
+    const result = await Swal.fire({
+      title: "آیا از حذف این کاربر مطمئن هستید؟",
+      text: "این عملیات غیرقابل بازگشت است!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "بله، حذف شود",
+      cancelButtonText: "خیر",
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
       try {
         await deleteUser(id).unwrap();
-        alert("✅ کاربر با موفقیت حذف شد");
+        Swal.fire("حذف شد!", "کاربر با موفقیت حذف شد.", "success");
         refetch();
       } catch (err) {
         console.error(err);
-        alert("❌ خطا در حذف کاربر");
+        Swal.fire("خطا!", "در حذف کاربر مشکلی پیش آمد.", "error");
       }
     }
   };

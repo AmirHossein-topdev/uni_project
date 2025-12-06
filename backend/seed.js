@@ -36,11 +36,11 @@ const seedData = async () => {
       name: "امیرحسین محسنی فر",
       email: "mohsenifar1383@gmail.com", // ایمیل اضافه شد
       employeeCode: "0110486986",
-      password: "amir1383", // هش توسط pre("save") انجام می‌شود
+      password: "123456789", // هش توسط pre("save") انجام می‌شود
       role: adminRole._id,
       contactNumber: "09301306552",
       address: "تهران قرچک خیابان رجایی کوچه رجایی ۱۵ پلاک ۱۹ واحد ۱",
-      profileImage: "", // مسیر فایل پروفایل در صورت نیاز
+      profileImage: "",
       status: "active",
     });
 

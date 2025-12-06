@@ -1,65 +1,79 @@
+// frontend\src\pages\dashboard\main\users\[id]\edit\index.jsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import {
-  useGetOwnerByIdQuery,
-  useUpdateOwnerMutation,
-} from "../../../../../../redux/features/ownerApi";
+import Swal from "sweetalert2";
 import DashboardLayout from "../../../../layout";
 import Link from "next/link";
-import { FaArrowLeft, FaSave } from "react-icons/fa";
-import { MdDriveFolderUpload } from "react-icons/md";
-import Swal from "sweetalert2";
+import { FaArrowRight, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  useGetUserByIdQuery,
+  useUpdateUserMutation,
+} from "../../../../../../redux/features/userApi";
 
-export default function EditOwnerPage() {
+const ROLE_OPTIONS = [
+  { value: "Admin", label: "مدیر" },
+  { value: "Manager", label: "مدیر ارشد" },
+  { value: "Agent", label: "نماینده" },
+  { value: "Customer Support", label: "پشتیبانی مشتری" },
+  { value: "Accountant", label: "حسابدار" },
+  { value: "Inspector", label: "بازرس" },
+];
+
+export default function EditUserPage() {
   const router = useRouter();
   const { id } = router.query;
 
-  const { data, isLoading, isError } = useGetOwnerByIdQuery(id, {
-    skip: !router.isReady || !id,
+  const [userId, setUserId] = useState(null);
+
+  // وقتی id آماده شد userId ست میشه
+  useEffect(() => {
+    if (id) {
+      setUserId(id);
+    }
+  }, [id]);
+
+  const { data, isLoading, isError } = useGetUserByIdQuery(userId, {
+    skip: !userId, // فقط وقتی userId ست شد query اجرا شود
   });
 
-  const [updateOwner] = useUpdateOwnerMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
 
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    nationalId: "",
-    orgId: "",
+    employeeCode: "",
+    password: "",
+    role: "",
     email: "",
-    phone: "",
-    type: "individual",
+    contactNumber: "",
     address: "",
-    status: "active",
-    notes: "",
-    photo: null,
+    profileImage: null,
+    status: "inactive",
   });
-
   const [previewOld, setPreviewOld] = useState("");
   const [previewNew, setPreviewNew] = useState("");
 
-  // Load data from API
+  // بارگذاری اطلاعات کاربر وقتی data آماده شد
   useEffect(() => {
-    if (!data?.data) return;
+    if (!data) return;
 
-    const owner = data.data;
-
-    console.log("OWNER RAW DATA:", owner);
+    const user = data;
 
     setFormData({
-      name: owner.name || "",
-      nationalId: owner.nationalId || "",
-      orgId: owner.orgId || "",
-      email: owner.email || "",
-      phone: owner.phone || "",
-      type: owner.type || "individual",
-      address: owner.address || "",
-      status: owner.status || "active",
-      notes: owner.notes || "",
-      photo: null, // عکس جدید فقط زمان آپلود ست می‌شود
+      name: user.name ?? "",
+      employeeCode: user.employeeCode ?? "",
+      password: "", // خالی — فقط برای تغییر رمز جدید
+      role: user.role?.name ?? "",
+      email: user.email ?? "",
+      contactNumber: user.contactNumber ?? "",
+      address: user.address ?? "",
+      profileImage: user.profileImage ?? null,
+      status: user.status ?? "inactive",
     });
 
-    setPreviewOld(owner.photo ? `http://localhost:7000${owner.photo}` : "");
+    setPreviewOld(user.profileImage ? `${user.profileImage}` : "");
   }, [data]);
 
   const handleChange = (e) => {
@@ -69,10 +83,8 @@ export default function EditOwnerPage() {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-
     if (!file) return;
-
-    setFormData((prev) => ({ ...prev, photo: file }));
+    setFormData((prev) => ({ ...prev, profileImage: file }));
     setPreviewNew(URL.createObjectURL(file));
   };
 
@@ -80,245 +92,225 @@ export default function EditOwnerPage() {
     e.preventDefault();
 
     try {
-      const form = new FormData();
-
+      const formToSend = new FormData();
       for (const key in formData) {
-        if (formData[key] !== null) {
-          form.append(key, formData[key]);
+        const val = formData[key];
+        // مهم: وقتی فایل انتخاب شده است (File object) آن را append کن، وقتی profileImage یک string (مسیر قدیمی) است
+        // و کاربر فایل جدید انتخاب نکرده است، اگر می‌خواهی مسیر قدیمی را نگه داری نیازی به append نیست.
+        if (val !== null && val !== undefined) {
+          // اگر profileImage فایل است (object) append کن، وگرنه اگر رشته است (مسیر)، append کن هم پذیرفته می‌شود.
+          formToSend.append(key, val);
         }
       }
 
-      await updateOwner({ id, formData: form }).unwrap();
-      Swal.fire({
+      // مطابق RTK mutation: { id, formData }
+      await updateUser({ id: userId, formData: formToSend }).unwrap();
+
+      await Swal.fire({
         icon: "success",
-        title: "اطلاعات ذخیره شد",
-        text: "ویرایش مالک با موفقیت انجام شد",
+        title: "ویرایش کاربر با موفقیت انجام شد",
         confirmButtonText: "باشه",
       });
 
-      router.push("/dashboard/main/owners");
+      router.push("/dashboard/main/users");
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "خطا!",
-        text: "مشکلی در ویرایش مالک رخ داد",
+        text: err?.data?.message || "مشکلی در ویرایش کاربر رخ داد",
       });
     }
   };
 
-  if (isLoading)
+  if (!userId || isLoading)
     return (
       <DashboardLayout>
-        <div className="text-black">در حال بارگذاری...</div>;
+        <div className="text-white text-center py-10">در حال بارگذاری...</div>
       </DashboardLayout>
     );
 
   if (isError)
     return (
       <DashboardLayout>
-        <div className="text-red-600">خطا در دریافت اطلاعات مالک</div>;
+        <div className="text-red-600 text-center py-10">
+          خطا در دریافت اطلاعات کاربر
+        </div>
       </DashboardLayout>
     );
+
   return (
     <DashboardLayout>
-      <div className="p-6 md:p-10 max-w-5xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+      <div className="p-6 md:p-10 max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
           <Link
-            href="/dashboard/main/owners"
-            className="text-green-600 hover:text-green-400 flex items-center gap-2"
+            href="/dashboard/main/users"
+            className="text-green-400 hover:text-green-600 flex items-center gap-2"
           >
-            <FaArrowLeft /> بازگشت به مالکان
+            <FaArrowRight /> بازگشت به کاربران
           </Link>
-          <h2 className="text-2xl font-bold text-gray-800">ویرایش مالک</h2>
+          <h2 className="text-2xl font-bold text-white">ویرایش کاربر</h2>
         </div>
 
-        {/* فرم */}
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 bg-white text-black p-8 rounded-xl shadow-lg border border-gray-100"
+          className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-4"
         >
           {/* نام */}
           <div>
-            <label className="mb-1 font-semibold text-gray-700 block">
-              نام کامل مالک
-            </label>
+            <label className="text-gray-300 mb-1 block">نام کامل</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
+              required
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
-          <hr className="border-gray-200" />
-
-          {/* کد ملی + شناسه سازمانی */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="font-semibold text-gray-700">کد ملی</label>
-              <input
-                type="text"
-                name="nationalId"
-                value={formData.nationalId}
-                onChange={handleChange}
-                className="border border-gray-300  rounded-lg p-3 w-full bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-gray-700">
-                شناسه سازمانی
-              </label>
-              <input
-                type="text"
-                name="orgId"
-                value={formData.orgId}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
-              />
-            </div>
+          {/* کد سازمانی */}
+          <div>
+            <label className="text-gray-300 mb-1 block">کد سازمانی</label>
+            <input
+              type="text"
+              name="employeeCode"
+              value={formData.employeeCode}
+              onChange={handleChange}
+              required
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
 
-          <hr className="border-gray-200" />
-
-          {/* ایمیل + موبایل */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="font-semibold text-gray-700">ایمیل</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-gray-700">شماره تماس</label>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
-              />
-            </div>
+          {/* رمز عبور */}
+          <div className="relative">
+            <label className="text-gray-300 mb-1 block">رمز عبور</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute bottom-3 left-3 transform -translate-y-1/2 text-gray-400 hover:text-green-500"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
 
-          <hr className="border-gray-200" />
-
-          {/* نوع + وضعیت */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="font-semibold text-gray-700">نوع مالک</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
-              >
-                <option value="individual">شخصی</option>
-                <option value="organization">سازمانی</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="font-semibold text-gray-700">وضعیت</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
-              >
-                <option value="active">فعال</option>
-                <option value="inactive">غیرفعال</option>
-                <option value="blocked">مسدود</option>
-              </select>
-            </div>
+          {/* ایمیل */}
+          <div>
+            <label className="text-gray-300 mb-1 block">ایمیل</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
 
-          <hr className="border-gray-200" />
+          {/* نقش */}
+          <div>
+            <label className="text-gray-300 mb-1 block">نقش</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">انتخاب نقش...</option>
+              {ROLE_OPTIONS.map((role) => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* شماره تماس */}
+          <div>
+            <label className="text-gray-300 mb-1 block">شماره تماس</label>
+            <input
+              type="text"
+              name="contactNumber"
+              value={formData.contactNumber}
+              onChange={handleChange}
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
 
           {/* آدرس */}
           <div>
-            <label className="font-semibold text-gray-700">آدرس</label>
+            <label className="text-gray-300 mb-1 block">آدرس</label>
             <input
               type="text"
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50"
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
-          <hr className="border-gray-200" />
-
-          {/* عکس */}
+          {/* تصویر پروفایل */}
           <div>
-            <label className="font-semibold text-gray-700 block mb-2">
-              عکس مالک
-            </label>
-
-            {/* عکس قبلی */}
-            {previewOld && (
-              <div className="mb-4">
-                <p className="text-gray-600 text-sm mb-1">عکس فعلی:</p>
-                <img
-                  src={previewOld}
-                  className="w-32 h-32 rounded-lg object-cover border"
+            <label className="text-gray-300 mb-1 block">تصویر پروفایل</label>
+            <div className="flex items-center gap-4">
+              <label className="w-1/5 min-w-[140px] flex items-center justify-center border border-gray-700 bg-gray-900 text-white rounded-xl p-3 cursor-pointer hover:bg-gray-800 transition">
+                {formData.profileImage ? "تغییر فایل" : "انتخاب فایل"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
-              </div>
-            )}
-
-            {/* عکس جدید */}
-            {previewNew && (
-              <div className="mb-4">
-                <p className="text-gray-600 text-sm mb-1">
-                  پیش‌نمایش عکس جدید:
-                </p>
+              </label>
+              <span className="text-gray-400 text-sm">
+                {formData.profileImage
+                  ? formData.profileImage.name
+                  : "فایلی انتخاب نشده"}
+              </span>
+              {previewNew ? (
                 <img
                   src={previewNew}
-                  className="w-32 h-32 rounded-lg object-cover border"
+                  className="w-16 h-16 object-cover rounded-lg border border-gray-700"
                 />
-              </div>
-            )}
-
-            <label className="flex items-center gap-3 border border-gray-300 rounded-lg p-3 cursor-pointer bg-gray-50 hover:ring-2 hover:ring-green-500 transition">
-              <MdDriveFolderUpload size={24} className="text-green-600" />
-              <span className="text-gray-600">انتخاب فایل جدید (اختیاری)</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
+              ) : previewOld ? (
+                <img
+                  src={previewOld}
+                  className="w-16 h-16 object-cover rounded-lg border border-gray-700"
+                />
+              ) : null}
+            </div>
           </div>
 
-          <hr className="border-gray-200" />
-
-          {/* یادداشت */}
+          {/* وضعیت */}
           <div>
-            <label className="font-semibold text-gray-700">یادداشت‌ها</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
+            <label className="text-gray-300 mb-1 block">وضعیت</label>
+            <select
+              name="status"
+              value={formData.status}
               onChange={handleChange}
-              rows={4}
-              className="border border-gray-300 rounded-lg p-3 w-full bg-gray-50 resize-y"
-            />
+              className="w-full p-3 rounded-xl bg-gray-900 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="inactive">غیرفعال</option>
+              <option value="active">فعال</option>
+              <option value="blocked">مسدود</option>
+            </select>
           </div>
 
           {/* دکمه ذخیره */}
-          <div className="pt-4 flex justify-end">
+          <div className="text-center mt-4">
             <button
               type="submit"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold shadow-md hover:shadow-lg"
+              disabled={isUpdating}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-medium transition-all shadow-md hover:shadow-lg"
             >
-              <FaSave />
-              <span>ذخیره تغییرات</span>
+              {isUpdating ? "در حال ذخیره..." : "ذخیره تغییرات"}
             </button>
           </div>
         </form>

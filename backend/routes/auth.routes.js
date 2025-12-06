@@ -1,8 +1,8 @@
-// backend\routes\auth.routes.js
+// backend/routes/auth.routes.js
 const express = require("express");
 const router = express.Router();
 const User = require("../model/User");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs"); // ← استفاده از bcryptjs به‌صورت یکنواخت
 const jwt = require("jsonwebtoken");
 console.log("🔹 auth.routes.js loaded");
 

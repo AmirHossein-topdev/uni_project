@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 import { useCreateUserMutation } from "../../../../../redux/features/userApi";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import DashboardLayout from "../../../layout";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // اضافه کردن آیکون چشم
-import { useEffect } from "react";
+import { useRouter } from "next/router";
+
 const ROLE_OPTIONS = [
   { value: "Admin", label: "مدیر" },
   { value: "Manager", label: "مدیر ارشد" },
@@ -17,16 +18,14 @@ const ROLE_OPTIONS = [
 ];
 
 export default function CreateUserPage() {
-  useEffect(() => {
-    console.log("start - component mounted");
-  }, []);
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     employeeCode: "",
     password: "",
     role: "",
-    email: "", // ← اضافه شد
+    email: "",
     contactNumber: "",
     address: "",
     profileImage: null,
@@ -46,6 +45,9 @@ export default function CreateUserPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    console.log("فرم قبل از ارسال:", formData);
 
     try {
       const form = new FormData();
@@ -62,40 +64,44 @@ export default function CreateUserPage() {
         form.append("profileImage", formData.profileImage);
       }
 
-      // 🔹 لاگ دقیق کلیدها و مقادیر FormData
-      console.log("🚀 FormData content:");
-      for (let [key, value] of form.entries()) {
-        console.log(key, value);
-      }
+      const response = await createUser(form).unwrap();
+      console.log("پاسخ سرور:", response);
 
-      await createUser(form).unwrap();
-
-      alert("✅ کاربر با موفقیت ایجاد شد!");
+      Swal.fire({
+        icon: "success",
+        title: "کاربر با موفقیت ایجاد شد!",
+        confirmButtonText: "باشه",
+      }).then(() => {
+        router.push("/dashboard/main/users");
+      });
     } catch (err) {
-      console.error("Error in creating user:", err);
+      console.error("خطا در ایجاد کاربر:", err);
+      Swal.fire({
+        icon: "error",
+        title: "خطا در ایجاد کاربر",
+        text: err?.data?.message || err?.message || "لطفاً دوباره تلاش کنید",
+      });
     }
   };
 
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 md:p-8 min-h-screen bg-gray-900">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
           <Link
             href="/dashboard/main/users"
-            className="p-2  text-gray-300 hover:text-green-400 transition rounded-full  hover:bg-gray-800"
+            className="p-2 text-gray-300 hover:text-green-400 transition rounded-full hover:bg-gray-800"
           >
             <FaArrowRight size={20} />
           </Link>
-          <h2 className="text-2xl sm:text-3xl font-extrabold  text-white">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
             افزودن کاربر جدید
           </h2>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className=" bg-gray-800 p-6 rounded-xl shadow-lg max-w-3xl mx-auto space-y-4"
+          className="bg-gray-800 p-6 rounded-xl shadow-lg max-w-3xl mx-auto space-y-4"
         >
           {/* نام */}
           <div>
@@ -114,7 +120,7 @@ export default function CreateUserPage() {
 
           {/* کد سازمانی */}
           <div>
-            <label className="block  text-gray-300 font-medium mb-1">
+            <label className="block text-gray-300 font-medium mb-1">
               کد سازمانی
             </label>
             <input
@@ -123,13 +129,13 @@ export default function CreateUserPage() {
               value={formData.employeeCode}
               onChange={handleChange}
               required
-              className="w-full border  border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
             />
           </div>
 
           {/* رمز عبور */}
           <div className="relative">
-            <label className="block  text-gray-300 font-medium mb-1">
+            <label className="block text-gray-300 font-medium mb-1">
               رمز عبور
             </label>
             <input
@@ -138,13 +144,13 @@ export default function CreateUserPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full border   border-gray-700 bg-gray-900 text-white rounded-xl p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
               className="absolute bottom-3 left-3 transform -translate-y-1/2 text-gray-500 hover:text-green-500 transition"
-              tabIndex={-1} // جلوگیری از فوکوس روی دکمه هنگام tab
+              tabIndex={-1}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
@@ -158,24 +164,23 @@ export default function CreateUserPage() {
             <input
               type="email"
               name="email"
-              value={formData.email || ""} // مقدار پیش‌فرض خالی
+              value={formData.email || ""}
               onChange={handleChange}
               required
               className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
               placeholder="ایمیل بازنشانی"
             />
           </div>
+
           {/* نقش */}
           <div>
-            <label className="block   text-gray-300 font-medium mb-1">
-              نقش
-            </label>
+            <label className="block text-gray-300 font-medium mb-1">نقش</label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               required
-              className="w-full border   border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
             >
               <option value="">انتخاب نقش...</option>
               {ROLE_OPTIONS.map((role) => (
@@ -188,7 +193,7 @@ export default function CreateUserPage() {
 
           {/* شماره تماس */}
           <div>
-            <label className="block   text-gray-300 font-medium mb-1">
+            <label className="block text-gray-300 font-medium mb-1">
               شماره تماس
             </label>
             <input
@@ -196,21 +201,19 @@ export default function CreateUserPage() {
               name="contactNumber"
               value={formData.contactNumber}
               onChange={handleChange}
-              className="w-full border   border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
             />
           </div>
 
           {/* آدرس */}
           <div>
-            <label className="block   text-gray-300 font-medium mb-1">
-              آدرس
-            </label>
+            <label className="block text-gray-300 font-medium mb-1">آدرس</label>
             <input
               type="text"
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="w-full border   border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
             />
           </div>
 
@@ -219,9 +222,7 @@ export default function CreateUserPage() {
             <label className="block text-gray-300 font-medium mb-1">
               تصویر پروفایل
             </label>
-
             <div className="flex items-center gap-4">
-              {/* باکس انتخاب فایل (20%) */}
               <label className="w-1/5 min-w-[140px] flex items-center justify-center border border-gray-700 bg-gray-900 text-white rounded-xl p-3 cursor-pointer text-center hover:bg-gray-800 transition">
                 {formData.profileImage ? "تغییر فایل" : "انتخاب فایل"}
                 <input
@@ -231,15 +232,11 @@ export default function CreateUserPage() {
                   className="hidden"
                 />
               </label>
-
-              {/* نمایش نام فایل (در صورت انتخاب) */}
               <span className="text-gray-400 text-sm">
                 {formData.profileImage
                   ? formData.profileImage.name
                   : "فایلی انتخاب نشده"}
               </span>
-
-              {/* پیش نمایش عکس */}
               {formData.profileImage && (
                 <img
                   src={URL.createObjectURL(formData.profileImage)}
@@ -252,14 +249,14 @@ export default function CreateUserPage() {
 
           {/* وضعیت */}
           <div>
-            <label className="block   text-gray-300 font-medium mb-1">
+            <label className="block text-gray-300 font-medium mb-1">
               وضعیت
             </label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full border   border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              className="w-full border border-gray-700 bg-gray-900 text-white rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
             >
               <option value="inactive">غیرفعال</option>
               <option value="active">فعال</option>
@@ -267,7 +264,6 @@ export default function CreateUserPage() {
             </select>
           </div>
 
-          {/* دکمه ارسال */}
           <div className="text-center mt-4">
             <button
               type="submit"

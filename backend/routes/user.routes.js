@@ -17,14 +17,11 @@ const userUpload = createUploader("users");
 // =======================
 router.post("/", userUpload.single("profileImage"), async (req, res) => {
   try {
-    // تبدیل رشته نقش → ObjectId
     if (typeof req.body.role === "string") {
       const roleDoc = await Role.findOne({ name: req.body.role });
       if (!roleDoc) return res.status(400).json({ message: "Invalid role" });
       req.body.role = roleDoc._id;
     }
-
-    // ارسال مستقیم به کنترلر
     await UserController.createUser(req, res);
   } catch (err) {
     console.error("❌ Error in / POST route:", err.message);
@@ -42,16 +39,14 @@ router.put(
   userUpload.single("profileImage"),
   async (req, res) => {
     try {
-      // اگر نقش به صورت رشته ارسال شده، ObjectId کن
       if (typeof req.body.role === "string") {
         const roleDoc = await Role.findOne({ name: req.body.role });
         if (!roleDoc) return res.status(400).json({ message: "Invalid role" });
         req.body.role = roleDoc._id;
       }
-
       await UserController.updateUser(req, res);
     } catch (err) {
-      console.error("❌ Error in / PUT route:", err.message);
+      console.error("❌ Error in PUT /users/:id:", err.message);
       res.status(400).json({ success: false, message: err.message });
     }
   }

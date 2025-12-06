@@ -1,4 +1,4 @@
-// backend/service/user.service.js
+// backend/services/user.service.js
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../model/User");
@@ -18,7 +18,7 @@ class UserService {
         contactNumber,
         address,
         status,
-        profileImage, // مسیر کامل عکس از کنترلر می‌آید
+        profileImage,
       } = data;
 
       // بررسی یکتا بودن کد کارمند
@@ -29,16 +29,12 @@ class UserService {
       const emailExist = await User.findOne({ email });
       if (emailExist) throw new Error("Email already exists");
 
-      // هش کردن پسورد
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      // ایجاد کاربر
+      // **اینجا هش نمیکنیم** — مدل User.pre('save') یکبار هش خواهد کرد
       const user = new User({
         name,
         employeeCode,
         email,
-        password: hashedPassword,
+        password, // plaintext -> model pre('save') will hash it
         role,
         contactNumber,
         address,
@@ -58,7 +54,7 @@ class UserService {
   // =====================================
   async updateUser(id, data) {
     try {
-      // اگر پسورد جدید داده شد → هش کن
+      // اگر پسورد جدید داده شد → اینجا باید هش شود (findByIdAndUpdate pre('save') را صدا نمیکند)
       if (data.password) {
         const salt = await bcrypt.genSalt(10);
         data.password = await bcrypt.hash(data.password, salt);
@@ -77,10 +73,7 @@ class UserService {
     }
   }
 
-  // =====================================
-  // سایر متدها بدون تغییر
-  // =====================================
-
+  // بقیه متدها بدون تغییر
   async getUserByEmployeeCode(code) {
     const user = await User.findOne({ employeeCode: code }).populate("role");
     if (!user) throw new Error("User not found");
