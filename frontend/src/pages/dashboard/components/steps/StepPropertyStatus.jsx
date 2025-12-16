@@ -12,6 +12,17 @@ const inputBaseClasses =
 const checkboxBaseClasses =
   "form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition duration-150 ease-in-out cursor-pointer";
 
+// کامپوننت FormInput رو خارج از بدنه اصلی کامپوننت تعریف می‌کنیم تا هر بار re-render نشه
+const FormInput = ({ label, name, children, required = false }) => (
+  <div className="flex flex-col space-y-1">
+    <label htmlFor={name} className="text-sm font-medium text-gray-700">
+      {label}
+      {required && <span className="text-red-500 pr-1">*</span>}
+    </label>
+    {children}
+  </div>
+);
+
 export default function StepPropertyStatus({ next, back }) {
   const dispatch = useDispatch();
   const draft = useSelector((state) => state.propertyDraft.status);
@@ -45,11 +56,31 @@ export default function StepPropertyStatus({ next, back }) {
     fetchEnums();
   }, []);
 
+  // تابع کمکی برای تبدیل ارقام فارسی به انگلیسی
+  const persianToEnglishDigits = (str) => {
+    const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+    const englishDigits = "0123456789";
+    return str.replace(
+      /[۰-۹]/g,
+      (d) => englishDigits[persianDigits.indexOf(d)]
+    );
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let newValue = type === "checkbox" ? checked : value;
+
+    // برای فیلدهای عددی: فقط ارقام (فارسی یا انگلیسی) قبول کن و به انگلیسی تبدیل کن
+    if (["arsehNumber", "propertyIdCode", "propertyNumber"].includes(name)) {
+      // فیلتر فقط ارقام (فارسی یا انگلیسی)
+      newValue = newValue.replace(/[^۰-۹0-9]/g, "");
+      // تبدیل به انگلیسی
+      newValue = persianToEnglishDigits(newValue);
+    }
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: newValue,
     }));
   };
 
@@ -58,7 +89,7 @@ export default function StepPropertyStatus({ next, back }) {
     dispatch(
       setStatus({
         ...form,
-        // تبدیل به عدد قبل از ذخیره
+        // تبدیل به عدد قبل از ذخیره (حالا که value همیشه string انگلیسی عددی هست)
         arsehNumber: form.arsehNumber ? Number(form.arsehNumber) : null,
         propertyIdCode: form.propertyIdCode
           ? Number(form.propertyIdCode)
@@ -84,17 +115,6 @@ export default function StepPropertyStatus({ next, back }) {
         </div>
       </div>
     );
-
-  // یک کامپوننت کوچک برای ساختار دهی به ورودی
-  const FormInput = ({ label, name, children, required = false }) => (
-    <div className="flex flex-col space-y-1">
-      <label htmlFor={name} className="text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="text-red-500 pr-1">*</span>}
-      </label>
-      {children}
-    </div>
-  );
 
   return (
     <form
@@ -152,7 +172,9 @@ export default function StepPropertyStatus({ next, back }) {
 
         <FormInput label="شماره عرصه (اختیاری)" name="arsehNumber">
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             name="arsehNumber"
             value={form.arsehNumber}
             onChange={handleChange}
@@ -163,7 +185,9 @@ export default function StepPropertyStatus({ next, back }) {
 
         <FormInput label="کد شناسایی ملک" name="propertyIdCode" required>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             name="propertyIdCode"
             value={form.propertyIdCode}
             onChange={handleChange}
@@ -175,7 +199,9 @@ export default function StepPropertyStatus({ next, back }) {
 
         <FormInput label="کد ملک" name="propertyNumber" required>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             name="propertyNumber"
             value={form.propertyNumber}
             onChange={handleChange}

@@ -82,7 +82,8 @@ const propertyLegalStatusSchema = mongoose.Schema(
     },
 
     registrationDate: {
-      type: Date, // تاریخ ثبت
+      type: String, // تاریخ شمسی
+      trim: true,
     },
 
     officeNumber: {

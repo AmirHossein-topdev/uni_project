@@ -17,8 +17,8 @@ const steps = [
   StepIdentity,
   StepLocation,
   StepLegalStatus,
-  StepOwnership,
   StepBoundaries,
+  StepOwnership,
   StepAdditionalInfo,
 ];
 

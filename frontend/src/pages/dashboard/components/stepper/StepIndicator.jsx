@@ -5,8 +5,8 @@ const steps = [
   "شناسنامه",
   "موقعیت",
   "وضعیت حقوقی",
-  "مالکیت",
   "حدود اربعه",
+  "مالکیت",
   "سایر اطلاعات",
 ];
 
@@ -35,7 +35,7 @@ export default function StepIndicator({ currentStep }) {
         }`;
 
         // اتصال‌دهنده خطی
-        const connectorClasses = `absolute top-1/2 right-full transform -translate-y-1/2 h-0.5 w-full ${
+        const connectorClasses = `absolute top-1/2 left-full transform -translate-y-2.5 h-0.5 w-full ${
           isCompleted ? "bg-green-500" : "bg-gray-300"
         }`;
         // این کانکتور باید فقط برای آیتم‌هایی نمایش داده شود که اولین آیتم نیستند.
@@ -46,7 +46,7 @@ export default function StepIndicator({ currentStep }) {
             className="flex-1 flex flex-col items-center relative"
           >
             {/* خط اتصال‌دهنده (به جز مرحله اول) */}
-            {index > 0 && (
+            {index < steps.length - 1 && (
               <div
                 className={connectorClasses}
                 style={{

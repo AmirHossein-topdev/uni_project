@@ -42,6 +42,7 @@ app.use("/api/owners", ownerRoutes);
 app.use("/api/contracts", contractRoutes);
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/location-enums", locationEnumsRoutes);
+app.use("/api/upload", require("./routes/uploadDocument.routes"));
 
 // اجازه به دسترسی به فایل‌های آپلود شده
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

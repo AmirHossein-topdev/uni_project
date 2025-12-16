@@ -1299,6 +1299,11 @@ const propertyLocationInfoSchema = mongoose.Schema(
       trim: true,
     },
 
+    plate: {
+      type: String,
+      trim: true,
+    },
+
     postalCode: {
       type: String,
       trim: true,

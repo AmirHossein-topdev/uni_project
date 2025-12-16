@@ -9,6 +9,23 @@ const inputBaseClasses =
   "p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out w-full bg-white text-gray-800 shadow-sm appearance-none";
 // appearance-none برای Selectها ضروری است تا استایل‌های مرورگر را حذف کند و ظاهر یکنواخت شود.
 
+// کامپوننت FormField رو خارج از بدنه اصلی کامپوننت تعریف می‌کنیم تا هر بار re-render نشه
+const FormField = ({
+  label,
+  name,
+  children,
+  required = false,
+  type = "text",
+}) => (
+  <div className="flex flex-col space-y-1">
+    <label htmlFor={name} className="text-sm font-medium text-gray-700">
+      {label}
+      {required && <span className="text-red-500 pr-1">*</span>}
+    </label>
+    {children}
+  </div>
+);
+
 export default function PropertyIdentityForm({ next, back }) {
   const dispatch = useDispatch();
   const identityDraft = useSelector((state) => state.propertyDraft.identity);
@@ -63,9 +80,32 @@ export default function PropertyIdentityForm({ next, back }) {
     fetchEnums();
   }, []);
 
+  // تابع کمکی برای تبدیل ارقام فارسی به انگلیسی
+  const persianToEnglishDigits = (str) => {
+    const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+    const englishDigits = "0123456789";
+    return str.replace(
+      /[۰-۹]/g,
+      (d) => englishDigits[persianDigits.indexOf(d)]
+    );
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    let newValue = type === "checkbox" ? checked : value;
+
+    // برای فیلدهای عددی: فقط ارقام (فارسی یا انگلیسی) قبول کن و به انگلیسی تبدیل کن
+    if (["populationCode"].includes(name)) {
+      // فیلتر فقط ارقام (فارسی یا انگلیسی)
+      newValue = newValue.replace(/[^۰-۹0-9]/g, "");
+      // تبدیل به انگلیسی
+      newValue = persianToEnglishDigits(newValue);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -87,23 +127,6 @@ export default function PropertyIdentityForm({ next, back }) {
         </div>
       </div>
     );
-
-  // یک کامپوننت کوچک برای ساختار دهی به ورودی
-  const FormField = ({
-    label,
-    name,
-    children,
-    required = false,
-    type = "text",
-  }) => (
-    <div className="flex flex-col space-y-1">
-      <label htmlFor={name} className="text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="text-red-500 pr-1">*</span>}
-      </label>
-      {children}
-    </div>
-  );
 
   return (
     <form
@@ -167,7 +190,9 @@ export default function PropertyIdentityForm({ next, back }) {
         {/* کد جمعیتی */}
         <FormField label="کد جمعیتی (اختیاری)" name="populationCode">
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             name="populationCode"
             value={form.populationCode}
             onChange={handleChange}
