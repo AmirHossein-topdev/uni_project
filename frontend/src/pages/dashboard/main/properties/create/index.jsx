@@ -1,14 +1,14 @@
 "use client";
 import React from "react";
 import DashboardLayout from "../../../layout";
-import PropertyForm from "../../../components/forms/PropertyForm";
+import PropertyStepper from "../../../components/stepper/PropertyStepper";
 
 export default function CreatePropertyPage() {
   return (
     <DashboardLayout>
-      <div className="p-6 md:p-10 max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6">ایجاد ملک جدید</h2>
-        <PropertyForm />
+      <div className="min-h-screen text-black bg-gray-100 rounded-2xl p-8">
+        <h1 className="text-2xl font-bold mb-6">ثبت ملک جدید</h1>
+        <PropertyStepper />
       </div>
     </DashboardLayout>
   );

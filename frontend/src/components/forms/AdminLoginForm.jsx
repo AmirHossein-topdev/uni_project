@@ -45,19 +45,19 @@ const AdminLoginForm = () => {
 
   const onSubmit = async (data) => {
     if (!captchaValue) {
-      notifyError("لطفا تأیید کنید که ربات نیستید!");
+      notifyError("لطفاً تأیید کنید که ربات نیستید!");
       return;
     }
 
     try {
       const res = await loginUser({
-        employeeCode: data.employeeCode, // یا employeeCode بسته به backend
+        employeeCode: data.employeeCode,
         password: data.password,
       }).unwrap();
 
       // موفقیت
       notifySuccess("ورود با موفقیت انجام شد!");
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (err) {
       console.error("❌ Login failed with error:", err);
 
@@ -65,7 +65,7 @@ const AdminLoginForm = () => {
         err?.data?.error ||
         err?.data?.message ||
         err?.error ||
-        "ورود موفق نبود. لطفا مجددا تلاش کنید.";
+        "ورود موفق نبود. لطفاً مجدداً تلاش کنید.";
 
       notifyError(message);
     }

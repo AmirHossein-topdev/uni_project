@@ -1,126 +1,176 @@
+// frontend\src\redux\features\propertyApi.js
 // frontend/src/redux/features/propertyApi.js
-import { apiSlice } from "../api/apiSlice";
 
-export const propertyApi = apiSlice.injectEndpoints({
-  overrideExisting: true,
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+/**
+ * Base Query
+ */
+const baseQuery = fetchBaseQuery({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL + "/properties",
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState()?.auth?.token;
+    if (token) {
+      headers.set("authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+/**
+ * API Slice
+ */
+export const propertyApi = createApi({
+  reducerPath: "propertyApi",
+  baseQuery,
+  tagTypes: ["Property"],
   endpoints: (builder) => ({
-    // 1️⃣ ایجاد ملک جدید
-    addProperty: builder.mutation({
-      query: (formData) => ({
-        url: "/properties/add",
+    /* =========================
+       Property (Core)
+    ========================= */
+
+    createProperty: builder.mutation({
+      query: (data) => ({
+        url: "/",
         method: "POST",
-        body: formData,
-        // FormData خودکار Content-Type را ست می‌کند، نیازی به هدر نیست
+        body: data,
       }),
-      invalidatesTags: [{ type: "Property", id: "LIST" }],
+      invalidatesTags: ["Property"],
     }),
 
-    // 2️⃣ گرفتن همه ملک‌ها با فیلتر و pagination
-    getProperties: builder.query({
-      query: ({ page = 1, limit = 10, status, type, owner } = {}) => {
-        const params = new URLSearchParams();
-        if (page) params.append("page", page);
-        if (limit) params.append("limit", limit);
-        if (status) params.append("status", status);
-        if (type) params.append("type", type);
-        if (owner) params.append("owner", owner);
-        return `/properties?${params.toString()}`;
-      },
-      transformResponse: (response) => response.data?.properties || [],
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((property) => ({
-                type: "Property",
-                id: property._id,
-              })),
-              { type: "Property", id: "LIST" },
-            ]
-          : [{ type: "Property", id: "LIST" }],
-    }),
-
-    // 3️⃣ گرفتن ملک بر اساس ID
     getPropertyById: builder.query({
-      query: (id) => `/properties/${id}`,
-      transformResponse: (response) => response.data || {},
+      query: (id) => `/${id}`,
       providesTags: (result, error, id) => [{ type: "Property", id }],
     }),
 
-    // 4️⃣ ویرایش ملک
-    updateProperty: builder.mutation({
-      query: ({ id, formData }) => ({
-        url: `/properties/${id}`,
+    getFullProperty: builder.query({
+      query: (id) => `/${id}/full`,
+      providesTags: (result, error, id) => [{ type: "Property", id }],
+    }),
+
+    updatePropertyStatus: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}`,
         method: "PUT",
-        body: formData,
+        body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Property", id },
-        { type: "Property", id: "LIST" },
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
       ],
     }),
 
-    // 5️⃣ حذف ملک
     deleteProperty: builder.mutation({
-      query: (id) => ({
-        url: `/properties/${id}`,
+      query: (propertyId) => ({
+        url: `/${propertyId}`,
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: "Property", id: "LIST" }],
+      invalidatesTags: ["Property"],
     }),
 
-    // 6️⃣ تغییر وضعیت ملک
-    changePropertyStatus: builder.mutation({
-      query: ({ id, status }) => ({
-        url: `/properties/${id}/status`,
+    /* =========================
+       Property Sections (One-to-One)
+    ========================= */
+
+    upsertIdentity: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}/identity`,
         method: "PUT",
-        body: { status },
+        body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Property", id },
-        { type: "Property", id: "LIST" },
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
       ],
     }),
 
-    // 7️⃣ افزایش شمارنده بازدید
-    incrementPropertyViews: builder.mutation({
-      query: (id) => ({
-        url: `/properties/${id}/views`,
-        method: "PATCH",
+    upsertLocation: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}/location`,
+        method: "PUT",
+        body: data,
       }),
-      invalidatesTags: (result, error, id) => [{ type: "Property", id }],
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
+      ],
     }),
 
-    // 8️⃣ جستجوی ملک‌ها
-    searchProperties: builder.query({
-      query: ({ keyword, page = 1, limit = 10 }) => {
-        const params = new URLSearchParams();
-        if (keyword) params.append("keyword", keyword);
-        params.append("page", page);
-        params.append("limit", limit);
-        return `/properties/search?${params.toString()}`;
-      },
-      transformResponse: (response) => response.data?.properties || [],
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.map((property) => ({
-                type: "Property",
-                id: property._id,
-              })),
-              { type: "Property", id: "LIST" },
-            ]
-          : [{ type: "Property", id: "LIST" }],
+    upsertLegalStatus: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}/legal`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
+      ],
+    }),
+
+    upsertOwnership: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}/ownership`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
+      ],
+    }),
+
+    upsertBoundaries: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}/boundaries`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
+      ],
+    }),
+
+    upsertAdditionalInfo: builder.mutation({
+      query: ({ propertyId, data }) => ({
+        url: `/${propertyId}/additional`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (r, e, { propertyId }) => [
+        { type: "Property", id: propertyId },
+      ],
+    }),
+
+    /* =========================
+       List & Search
+    ========================= */
+
+    listProperties: builder.query({
+      query: (params = {}) => ({
+        url: "/",
+        params,
+      }),
+      providesTags: ["Property"],
     }),
   }),
 });
 
+/* =========================
+   Hooks Export
+========================= */
+
 export const {
-  useAddPropertyMutation,
-  useGetPropertiesQuery,
+  // core
+  useCreatePropertyMutation,
   useGetPropertyByIdQuery,
-  useUpdatePropertyMutation,
+  useGetFullPropertyQuery,
+  useUpdatePropertyStatusMutation,
   useDeletePropertyMutation,
-  useChangePropertyStatusMutation,
-  useIncrementPropertyViewsMutation,
-  useSearchPropertiesQuery,
+
+  // sections
+  useUpsertIdentityMutation,
+  useUpsertLocationMutation,
+  useUpsertLegalStatusMutation,
+  useUpsertOwnershipMutation,
+  useUpsertBoundariesMutation,
+  useUpsertAdditionalInfoMutation,
+
+  // list
+  useListPropertiesQuery,
 } = propertyApi;

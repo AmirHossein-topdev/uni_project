@@ -1,124 +1,103 @@
-// backend/controller/property.controller.js
-const PropertyService = require("../services/property.service");
+const propertyService = require("../services/property.service");
 
-class PropertyController {
-  // ایجاد ملک جدید
-  async createProperty(req, res) {
-    try {
-      const data = { ...req.body };
+/* ===== helpers ===== */
+const success = (res, data, status = 200) =>
+  res.status(status).json({ success: true, data });
 
-      // mainImage
-      if (req.file) {
-        data.mainImage = req.file.filename; // یا مسیر کامل
-      }
+const failure = (res, err) =>
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || "Internal Server Error",
+  });
 
-      // gallery
-      if (req.files && req.files.gallery) {
-        data.gallery = req.files.gallery.map((f) => f.filename);
-      }
-
-      const property = await PropertyService.createProperty(data);
-      res.status(201).json({ success: true, data: property });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
+/* ===== PropertyStatus ===== */
+exports.createProperty = async (req, res) => {
+  try {
+    const result = await propertyService.createProperty(req.body);
+    success(res, result, 201);
+  } catch (err) {
+    failure(res, err);
   }
+};
 
-  // دریافت ملک با آی‌دی
-  async getPropertyById(req, res) {
-    try {
-      const property = await PropertyService.getPropertyById(req.params.id);
-      res.json({ success: true, data: property });
-    } catch (err) {
-      res.status(404).json({ success: false, message: err.message });
-    }
+exports.listProperties = async (req, res) => {
+  try {
+    const result = await propertyService.listProperties(req.query);
+    success(res, result);
+  } catch (err) {
+    failure(res, err);
   }
+};
 
-  // آپدیت ملک
-  async updateProperty(req, res) {
-    try {
-      const updatedProperty = await PropertyService.updateProperty(
-        req.params.id,
-        req.body
-      );
-      res.json({ success: true, data: updatedProperty });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
+exports.getProperty = async (req, res) => {
+  try {
+    const result = await propertyService.getProperty(req.params.id);
+    success(res, result);
+  } catch (err) {
+    failure(res, err);
   }
+};
 
-  // حذف ملک
-  async deleteProperty(req, res) {
-    try {
-      const deletedProperty = await PropertyService.deleteProperty(
-        req.params.id
-      );
-      res.json({ success: true, data: deletedProperty });
-    } catch (err) {
-      res.status(404).json({ success: false, message: err.message });
-    }
+exports.updateProperty = async (req, res) => {
+  try {
+    const result = await propertyService.updateProperty(
+      req.params.id,
+      req.body
+    );
+    success(res, result);
+  } catch (err) {
+    failure(res, err);
   }
+};
 
-  // تغییر وضعیت ملک
-  async changePropertyStatus(req, res) {
-    try {
-      const { status } = req.body;
-      const property = await PropertyService.changePropertyStatus(
-        req.params.id,
-        status
-      );
-      res.json({ success: true, data: property });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
+exports.deleteProperty = async (req, res) => {
+  try {
+    const result = await propertyService.deleteProperty(req.params.id);
+    success(res, result);
+  } catch (err) {
+    failure(res, err);
   }
+};
 
-  // افزایش شمارنده بازدید
-  async incrementViews(req, res) {
-    try {
-      const property = await PropertyService.incrementViews(req.params.id);
-      res.json({ success: true, data: property });
-    } catch (err) {
-      res.status(404).json({ success: false, message: err.message });
-    }
+/* ===== Sections ===== */
+exports.upsertIdentity = (req, res) =>
+  sectionHandler(req, res, "PropertyIdentity");
+
+exports.upsertLocation = (req, res) =>
+  sectionHandler(req, res, "PropertyLocationInfo");
+
+exports.upsertLegal = (req, res) =>
+  sectionHandler(req, res, "PropertyLegalStatus");
+
+exports.upsertOwnership = (req, res) =>
+  sectionHandler(req, res, "PropertyOwnership");
+
+exports.upsertBoundaries = (req, res) =>
+  sectionHandler(req, res, "PropertyBoundariesInfo");
+
+exports.upsertAdditional = (req, res) =>
+  sectionHandler(req, res, "PropertyAdditionalInfo");
+
+/* ===== Full ===== */
+exports.getFullProperty = async (req, res) => {
+  try {
+    const result = await propertyService.getFullProperty(req.params.id);
+    success(res, result);
+  } catch (err) {
+    failure(res, err);
   }
+};
 
-  // لیست ملک‌ها با فیلتر و pagination
-  async listProperties(req, res) {
-    try {
-      const { page, limit, status, type, owner } = req.query;
-      const result = await PropertyService.listProperties({
-        page: parseInt(page) || 1,
-        limit: parseInt(limit) || 10,
-        status,
-        type,
-        owner,
-      });
-      res.json({ success: true, data: result });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
-  }
-
-  // جستجو ملک‌ها
-  async searchProperties(req, res) {
-    try {
-      const { keyword, page, limit } = req.query;
-      if (!keyword)
-        return res
-          .status(400)
-          .json({ success: false, message: "Keyword is required" });
-
-      const result = await PropertyService.searchProperties({
-        keyword,
-        page: parseInt(page) || 1,
-        limit: parseInt(limit) || 10,
-      });
-      res.json({ success: true, data: result });
-    } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
-    }
+/* ===== shared handler ===== */
+async function sectionHandler(req, res, modelName) {
+  try {
+    const result = await propertyService.upsertSection(
+      req.params.id,
+      modelName,
+      req.body
+    );
+    success(res, result);
+  } catch (err) {
+    failure(res, err);
   }
 }
-
-module.exports = new PropertyController();

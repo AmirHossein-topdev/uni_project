@@ -5,7 +5,6 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import ReactModal from "react-modal";
-
 // مسیرهای استایل عمومی
 import "../styles/globals.css";
 import "../styles/dashboard.css";

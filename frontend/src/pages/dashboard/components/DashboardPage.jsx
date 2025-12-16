@@ -3,81 +3,95 @@
 import Head from "next/head";
 import {
   FaCircle,
-  FaBox,
+  FaFileAlt,
+  FaHome,
   FaUserPlus,
-  FaShoppingCart,
-  FaCreditCard,
-  FaComment,
-  FaTruck,
+  FaMapMarkedAlt,
+  FaCheckCircle,
+  FaCommentDots,
+  FaClock,
 } from "react-icons/fa";
 
 export default function DashboardPage() {
   const stats = [
     {
-      title: "مجموع فروش امروز",
-      value: "۲,۳۵۰,۰۰۰ تومان",
-      desc: "+۹% نسبت به دیروز",
+      title: "تعداد سندهای رسمی امروز",
+      value: "۱۲",
+      desc: "+۳ نسبت به دیروز",
     },
-    { title: "تعداد سفارشات", value: "۸۷", desc: "+۵ سفارش جدید" },
-    { title: "کاربران جدید", value: "۲۳", desc: "+۳ کاربر امروز" },
-    { title: "بازدید امروز", value: "۱۲,۴۰۰", desc: "+۲% نسبت به دیروز" },
+    {
+      title: "ثبت‌های امروز",
+      value: "۲۵",
+      desc: "+۵ ثبت جدید",
+    },
+    {
+      title: "ثبت‌های این ماه",
+      value: "۴۵۰",
+      desc: "+۲۰ نسبت به ماه گذشته",
+    },
+    {
+      title: "ثبت‌های سال جاری",
+      value: "۵,۲۰۰",
+      desc: "+۳۵۰ نسبت به سال گذشته",
+    },
   ];
 
   const notifications = [
-    "کاربر جدید ثبت نام کرد",
-    "سفارش جدید ثبت شد",
-    "محصول جدید به فروشگاه اضافه شد",
-    "پرداخت موفق انجام شد",
-    "نظر جدید ثبت شد",
+    "ثبت ملک جدید توسط کاربر",
+    "سند رسمی صادر شد",
+    "ثبت قرارداد جدید",
+    "تایید پرداخت هزینه ثبت",
+    "نظر جدید از کاربران",
   ];
 
   const activities = [
     {
-      icon: <FaBox />,
-      title: "محصول جدید: هدفون بی‌سیم",
+      icon: <FaFileAlt />,
+      title: "سند رسمی صادر شد: #۱۲۳۴",
       time: "۵ دقیقه پیش",
-      detail: "موجودی: ۲۵ عدد",
+      detail: "مالک: محمد رضایی",
+    },
+    {
+      icon: <FaHome />,
+      title: "ملک جدید ثبت شد: پلاک ۵۲",
+      time: "۱۵ دقیقه پیش",
+      detail: "آدرس: تهران، سعادت‌آباد",
     },
     {
       icon: <FaUserPlus />,
-      title: "ثبت نام کاربر جدید: علی محمدی",
-      time: "۱۰ دقیقه پیش",
-      detail: "سطح: مشتری ویژه",
+      title: "ثبت نام کاربر جدید: علی احمدی",
+      time: "۳۰ دقیقه پیش",
+      detail: "سطح: کاربر عادی",
     },
     {
-      icon: <FaShoppingCart />,
-      title: "سفارش جدید: #۱۲۳۴۵",
-      time: "۲۰ دقیقه پیش",
-      detail: "مبلغ: ۱,۲۵۰,۰۰۰ تومان",
+      icon: <FaCheckCircle />,
+      title: "قرارداد تایید شد: #۵۶۷۸",
+      time: "۴۵ دقیقه پیش",
+      detail: "نوع: اجاره",
     },
     {
-      icon: <FaCreditCard />,
-      title: "پرداخت موفق: #۹۸۷۶۵",
-      time: "۴۰ دقیقه پیش",
-      detail: "درگاه: زرین‌پال",
-    },
-    {
-      icon: <FaComment />,
-      title: "نظر جدید: عالی بود!",
+      icon: <FaCommentDots />,
+      title: "نظر جدید ثبت شد",
       time: "۱ ساعت پیش",
-      detail: "کاربر: سارا احمدی",
+      detail: "کاربر: سارا کریمی",
     },
     {
-      icon: <FaTruck />,
-      title: "ارسال سفارش: #۱۲۳۴۵",
+      icon: <FaClock />,
+      title: "ثبت فعالیت روزانه",
       time: "۲ ساعت پیش",
-      detail: "وضعیت: ارسال شد",
+      detail: "تعداد ثبت: ۱۲",
     },
   ];
 
   return (
     <>
       <Head>
-        <title>داشبورد پنل مدیریت</title>
+        <title>داشبورد سامانه مستغلات</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
       <div className="pt-4">
+        {/* آمار کلی */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
           {stats.map((item, i) => (
             <div key={i} className="bg-gray-700 p-4 rounded-xl shadow">
@@ -88,16 +102,17 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* نمودار و اعلان‌ها */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <div className="lg:col-span-2 bg-gray-700 p-4 rounded-xl shadow">
             <div className="flex justify-between mb-2">
               <span className="text-green-400 font-semibold">
-                نمودار فروش هفتگی
+                نمودار ثبت‌ها (روز/ماه/سال)
               </span>
               <span className="text-sm text-gray-400">۱۴۰۳</span>
             </div>
             <div className="h-48 flex items-center justify-center bg-gradient-to-r from-gray-700 to-gray-800 rounded-lg text-gray-400">
-              (جایگاه نمودار فروش)
+              (جایگاه نمودار ثبت‌ها)
             </div>
           </div>
           <div className="bg-gray-700 p-4 rounded-xl shadow">
@@ -113,6 +128,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* فعالیت‌ها */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {activities.map((item, i) => (
             <div key={i} className="bg-gray-700 p-4 rounded-xl shadow">

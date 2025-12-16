@@ -1,116 +1,84 @@
-// backend/service/property.service.js
-const Property = require("../model/Property");
+const PropertyStatus = require("../model/PropertyStatus");
+const PropertyIdentity = require("../model/PropertyIdentity");
+const PropertyLocationInfo = require("../model/PropertyLocationInfo");
+const PropertyLegalStatus = require("../model/PropertyLegalStatus");
+const PropertyOwnership = require("../model/PropertyOwnership");
+const PropertyBoundariesInfo = require("../model/PropertyBoundariesInfo");
+const PropertyAdditionalInfo = require("../model/PropertyAdditionalInfo");
 
-class PropertyService {
-  // ایجاد ملک جدید
-  async createProperty(data) {
-    try {
-      const property = new Property(data);
-      await property.save();
-      return property;
-    } catch (err) {
-      throw err;
-    }
-  }
+const sectionModels = {
+  PropertyIdentity,
+  PropertyLocationInfo,
+  PropertyLegalStatus,
+  PropertyOwnership,
+  PropertyBoundariesInfo,
+  PropertyAdditionalInfo,
+};
 
-  // دریافت ملک با آی‌دی
-  async getPropertyById(id) {
-    const property = await Property.findById(id)
-      .populate("owner")
-      .populate("contracts")
-      .populate("createdBy");
-    if (!property) throw new Error("Property not found");
-    return property;
-  }
+/* ===== PropertyStatus ===== */
+exports.createProperty = async (data) => {
+  return await PropertyStatus.create(data);
+};
 
-  // آپدیت ملک
-  async updateProperty(id, data) {
-    try {
-      const updatedProperty = await Property.findByIdAndUpdate(id, data, {
-        new: true,
-      });
-      if (!updatedProperty) throw new Error("Property not found");
-      return updatedProperty;
-    } catch (err) {
-      throw err;
-    }
-  }
+exports.listProperties = async () => {
+  return await PropertyStatus.find().sort({ createdAt: -1 });
+};
 
-  // حذف ملک
-  async deleteProperty(id) {
-    const deletedProperty = await Property.findByIdAndDelete(id);
-    if (!deletedProperty) throw new Error("Property not found");
-    return deletedProperty;
-  }
+exports.getProperty = async (id) => {
+  const doc = await PropertyStatus.findById(id);
+  if (!doc) throw { status: 404, message: "Property not found" };
+  return doc;
+};
 
-  // تغییر وضعیت ملک
-  async changePropertyStatus(id, status) {
-    const allowedStatuses = [
-      "در دسترس",
-      "اجاره داده شده",
-      "فروخته شده",
-      "در تعمیر",
-    ];
-    if (!allowedStatuses.includes(status)) {
-      throw new Error("Invalid status");
-    }
-    const property = await Property.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
-    if (!property) throw new Error("Property not found");
-    return property;
-  }
+exports.updateProperty = async (id, data) => {
+  const doc = await PropertyStatus.findByIdAndUpdate(id, data, {
+    new: true,
+  });
+  if (!doc) throw { status: 404, message: "Property not found" };
+  return doc;
+};
 
-  // افزایش شمارنده بازدید
-  async incrementViews(id) {
-    const property = await Property.findByIdAndUpdate(
-      id,
-      { $inc: { viewsCount: 1 } },
-      { new: true }
-    );
-    if (!property) throw new Error("Property not found");
-    return property;
-  }
+exports.deleteProperty = async (id) => {
+  await PropertyStatus.findByIdAndDelete(id);
 
-  // لیست ملک‌ها با فیلتر و pagination
-  async listProperties({ page = 1, limit = 10, status, type, owner }) {
-    const query = {};
-    if (status) query.status = status;
-    if (type) query.type = type;
-    if (owner) query.owner = owner;
+  // حذف وابسته‌ها
+  await Promise.all(
+    Object.values(sectionModels).map((Model) =>
+      Model.findOneAndDelete({ property: id })
+    )
+  );
 
-    const properties = await Property.find(query)
-      .populate("owner")
-      .populate("contracts")
-      .populate("createdBy")
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+  return { deleted: true };
+};
 
-    const total = await Property.countDocuments(query);
-    return { properties, total, page, limit };
-  }
+/* ===== Sections (Upsert) ===== */
+exports.upsertSection = async (propertyId, modelName, payload) => {
+  const Model = sectionModels[modelName];
+  if (!Model) throw { status: 400, message: "Invalid section" };
 
-  // جستجو ملک‌ها بر اساس عنوان، توضیحات یا تگ‌ها
-  async searchProperties({ keyword, page = 1, limit = 10 }) {
-    const regex = new RegExp(keyword, "i");
-    const query = {
-      $or: [{ title: regex }, { description: regex }, { tags: regex }],
-    };
+  const doc = await Model.findOneAndUpdate(
+    { property: propertyId },
+    { ...payload, property: propertyId },
+    { new: true, upsert: true }
+  );
 
-    const properties = await Property.find(query)
-      .populate("owner")
-      .populate("contracts")
-      .populate("createdBy")
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+  return doc;
+};
 
-    const total = await Property.countDocuments(query);
-    return { properties, total, page, limit };
-  }
-}
+/* ===== Full ===== */
+exports.getFullProperty = async (propertyId) => {
+  const property = await PropertyStatus.findById(propertyId);
+  if (!property) throw { status: 404, message: "Property not found" };
 
-module.exports = new PropertyService();
+  const sections = await Promise.all(
+    Object.entries(sectionModels).map(async ([key, Model]) => [
+      key,
+      await Model.findOne({ property: propertyId }),
+    ])
+  );
+
+  return {
+    property,
+    sections: Object.fromEntries(sections),
+  };
+};

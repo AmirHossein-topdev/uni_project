@@ -14,6 +14,7 @@ const roleRoutes = require("./routes/role.routes");
 const propertyRoutes = require("./routes/property.routes");
 const ownerRoutes = require("./routes/owner.routes");
 const contractRoutes = require("./routes/contract.routes");
+const locationEnumsRoutes = require("./routes/locationEnums.routes");
 
 // --- Middleware ---
 const globalErrorHandler = require("./middleware/global-error-handler");
@@ -40,6 +41,7 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/contracts", contractRoutes);
 app.use("/api/auth", require("./routes/auth.routes"));
+app.use("/api/location-enums", locationEnumsRoutes);
 
 // اجازه به دسترسی به فایل‌های آپلود شده
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -48,6 +50,11 @@ app.get("/", (req, res) => res.send("Server is running successfully"));
 
 // --- Global Error Handler ---
 app.use(globalErrorHandler);
+
+app.use((req, res, next) => {
+  console.log("REQ:", req.method, req.url);
+  next();
+});
 
 // --- 404 Handler ---
 app.use((req, res) => {

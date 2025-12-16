@@ -134,7 +134,7 @@ export default function UsersPage() {
   if (isLoading)
     return (
       <DashboardLayout>
-        <div className="flex justify-center py-10 text-green-600 dark:text-green-400 font-semibold text-lg animate-pulse">
+        <div className="flex justify-center py-10 text-cyan-600  font-semibold text-lg animate-pulse">
           در حال بارگذاری کاربران... لطفاً صبر کنید.
         </div>
       </DashboardLayout>
@@ -143,7 +143,7 @@ export default function UsersPage() {
   if (isError)
     return (
       <DashboardLayout>
-        <div className="flex justify-center py-10 text-red-600 dark:text-red-400 font-semibold text-lg">
+        <div className="flex justify-center py-10 text-red-600 font-semibold text-lg">
           ❌ خطا در دریافت اطلاعات کاربران. لطفاً اتصال خود را بررسی کنید.
         </div>
       </DashboardLayout>
@@ -151,7 +151,7 @@ export default function UsersPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 md:p-8 min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="p-4 sm:p-6 md:p-8 min-h-screen bg-cyan-950 rounded-4xl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b dark:border-gray-700">
           <div className="flex items-center gap-3">

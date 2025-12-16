@@ -142,7 +142,7 @@ export default function Sidebar({ isMobileOpen, onClose }) {
   return (
     <div
       id="sidebar"
-      className={`fixed top-0 right-0 h-full w-56 z-50 bg-gray-700 text-white flex-col transition-transform duration-300 transform ${
+      className={`fixed top-0 right-0 h-full w-56 z-50 bg-cyan-950 text-white flex-col transition-transform duration-300 transform ${
         isMobileOpen ? "translate-x-0" : "translate-x-full"
       } lg:translate-x-0 lg:flex`}
     >

@@ -54,17 +54,17 @@ class UserController {
         req.body.role = roleDoc._id;
       }
 
-      // اگر فایلی آپلود شد
+      // آپلود تصویر
       if (req.file) {
         req.body.profileImage = `/images/users/${req.file.filename}`;
       }
 
-      // 🔥 اگر پسورد جدید فرستاده شده بود → هش کن
-      if (!req.body.password || req.body.password.trim() === "") {
-        delete req.body.password;
+      // 🔥 هش کردن پسورد اگر داده شده
+      if (req.body.password && req.body.password.trim() !== "") {
+        const salt = await bcrypt.genSalt(10);
+        req.body.password = await bcrypt.hash(req.body.password, salt);
       } else {
-        // 🔥 اگر پسورد خالی بود → نذار مقدارش آپدیت بشه
-        delete req.body.password;
+        delete req.body.password; // اگر رمز خالی بود حذف کن
       }
 
       const updatedUser = await UserService.updateUser(req.params.id, req.body);

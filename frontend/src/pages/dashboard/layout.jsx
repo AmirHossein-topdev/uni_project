@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }) {
 
       <main
         id="mainContent"
-        className="flex-1 p-6 bg-gray-800 text-white min-h-screen lg:mr-56"
+        className="flex-1 p-6 bg-sky-900 text-white min-h-screen lg:mr-56"
       >
         <Header onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
         {children}

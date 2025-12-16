@@ -1,0 +1,49 @@
+"use client";
+
+import { useState } from "react";
+import StepIndicator from "./StepIndicator";
+
+// Steps
+import StepPropertyStatus from "../steps/StepPropertyStatus";
+import StepIdentity from "../steps/PropertyIdentityForm";
+import StepLocation from "../steps/StepPropertyLocation";
+import StepLegalStatus from "../steps/StepPropertyLegalStatus";
+import StepOwnership from "../steps/StepPropertyOwnership";
+import StepBoundaries from "../steps/StepPropertyBoundariesInfo";
+import StepAdditionalInfo from "../steps/StepPropertyAdditionalInfo";
+
+const steps = [
+  StepPropertyStatus,
+  StepIdentity,
+  StepLocation,
+  StepLegalStatus,
+  StepOwnership,
+  StepBoundaries,
+  StepAdditionalInfo,
+];
+
+export default function PropertyStepper() {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // حرکت به قدم بعدی
+  const next = () => {
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+  };
+
+  // حرکت به قدم قبلی
+  const back = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const StepComponent = steps[currentStep];
+
+  return (
+    <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow ">
+      {/* نشانگر مرحله */}
+      <StepIndicator currentStep={currentStep} />
+
+      {/* Step فعلی */}
+      <StepComponent next={next} back={back} />
+    </div>
+  );
+}

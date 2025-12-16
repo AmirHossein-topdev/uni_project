@@ -1,76 +1,58 @@
-// backend/routes/property.routes.js
 const express = require("express");
-const createUploader = require("../middleware/uploader.js"); // ← تابع سازنده
 const router = express.Router();
 const PropertyController = require("../controller/property.controller");
 
-// Middleware placeholder برای احراز هویت و بررسی دسترسی
-const authMiddleware = (req, res, next) => {
-  // اینجا می‌تونی JWT یا session validation بذاری
-  // req.user = decoded user
-  next();
-};
+// middleware نمونه (همان استایل Role)
+const authMiddleware = (req, res, next) => next();
+const roleMiddleware = (roles) => (req, res, next) => next();
 
-const roleMiddleware = (roles) => (req, res, next) => {
-  // اینجا بررسی کن req.user.role در roles باشه
-  // اگر نبود:
-  // return res.status(403).json({ success: false, message: "Forbidden" });
-  next();
-};
-
-// ایجاد uploader مخصوص ملک‌ها
-const propertyUpload = createUploader("properties"); // ← instance multer
-
-// ایجاد ملک جدید
+/* ===== PropertyStatus (اصلی) ===== */
 router.post(
-  "/add",
+  "/",
   authMiddleware,
-  roleMiddleware(["admin", "agent"]),
-  propertyUpload.fields([
-    { name: "mainImage", maxCount: 1 },
-    { name: "gallery", maxCount: 10 },
-  ]),
+  roleMiddleware(["admin"]),
   PropertyController.createProperty
 );
 
-// دریافت ملک با آی‌دی
-router.get("/:id", authMiddleware, PropertyController.getPropertyById);
+router.get("/", authMiddleware, PropertyController.listProperties);
 
-// آپدیت ملک (می‌توان تصویر جدید هم آپلود کرد)
+router.get("/:id", authMiddleware, PropertyController.getProperty);
+
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin", "agent"]),
-  propertyUpload.fields([
-    { name: "mainImage", maxCount: 1 },
-    { name: "gallery", maxCount: 10 },
-  ]),
+  roleMiddleware(["admin"]),
   PropertyController.updateProperty
 );
 
-// حذف ملک
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware(["admin", "agent"]),
+  roleMiddleware(["admin"]),
   PropertyController.deleteProperty
 );
 
-// تغییر وضعیت ملک
-router.patch(
-  "/:id/status",
+/* ===== Sections (one-to-one) ===== */
+router.put("/:id/identity", authMiddleware, PropertyController.upsertIdentity);
+router.put("/:id/location", authMiddleware, PropertyController.upsertLocation);
+router.put("/:id/legal", authMiddleware, PropertyController.upsertLegal);
+router.put(
+  "/:id/ownership",
   authMiddleware,
-  roleMiddleware(["admin", "agent"]),
-  PropertyController.changePropertyStatus
+  PropertyController.upsertOwnership
+);
+router.put(
+  "/:id/boundaries",
+  authMiddleware,
+  PropertyController.upsertBoundaries
+);
+router.put(
+  "/:id/additional",
+  authMiddleware,
+  PropertyController.upsertAdditional
 );
 
-// افزایش شمارنده بازدید
-router.patch("/:id/views", PropertyController.incrementViews);
-
-// لیست ملک‌ها با فیلتر و pagination
-router.get("/", authMiddleware, PropertyController.listProperties);
-
-// جستجو ملک‌ها
-router.get("/search", authMiddleware, PropertyController.searchProperties);
+/* ===== Full view ===== */
+router.get("/:id/full", authMiddleware, PropertyController.getFullProperty);
 
 module.exports = router;
