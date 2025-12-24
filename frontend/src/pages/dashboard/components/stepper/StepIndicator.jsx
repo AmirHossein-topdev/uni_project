@@ -10,11 +10,15 @@ const steps = [
   "سایر اطلاعات",
 ];
 
-export default function StepIndicator({ currentStep }) {
+export default function StepIndicator({
+  currentStep,
+  completed,
+  setCurrentStep,
+}) {
   return (
     <div className="flex justify-between items-start mb-10 p-4 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
       {steps.map((label, index) => {
-        const isCompleted = index < currentStep;
+        const isCompleted = completed[index];
         const isActive = index === currentStep;
 
         // تعیین استایل‌های مختلف بر اساس وضعیت
@@ -43,7 +47,8 @@ export default function StepIndicator({ currentStep }) {
         return (
           <div
             key={index}
-            className="flex-1 flex flex-col items-center relative"
+            className="flex-1 flex flex-col items-center relative cursor-pointer"
+            onClick={() => setCurrentStep(index)}
           >
             {/* خط اتصال‌دهنده (به جز مرحله اول) */}
             {index < steps.length - 1 && (
@@ -59,7 +64,13 @@ export default function StepIndicator({ currentStep }) {
             <div className="flex flex-col items-center justify-center">
               {/* دایره نشانگر */}
               <div className={circleClasses}>
-                {isCompleted ? "✔️" : index + 1}
+                {isCompleted ? (
+                  "✔️"
+                ) : isActive ? (
+                  index + 1
+                ) : (
+                  <span className="animate-spin">⏳</span>
+                )}
               </div>
 
               {/* متن مرحله */}

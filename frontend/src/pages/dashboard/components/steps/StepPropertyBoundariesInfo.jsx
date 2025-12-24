@@ -1,31 +1,12 @@
+// frontend\src\pages\dashboard\components\steps\StepPropertyBoundariesInfo.jsx
 "use client";
-import dynamic from "next/dynamic";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setBoundaries } from "@/redux/features/propertyDraftSlice";
-import LocationMapModal from "../LocationMapModal"; // ایمپورت کامپوننت جدید
-
-// --- اصلاح آیکون پیش‌فرض Leaflet در ری‌اکت ---
-// این بخش برای جلوگیری از لود نشدن آیکون مارکر ضروری است
-const iconFix = () => {
-  if (typeof window !== "undefined") {
-    const L = require("leaflet");
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-      iconUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-      shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-    });
-  }
-};
-
+import dynamic from "next/dynamic";
 // --- استایل‌های پایه ---
 const inputBaseClasses =
   "p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out w-full bg-white text-gray-800 shadow-sm placeholder-gray-400";
-
 // -------------------------------------------------------------
 // کامپوننت FormField را خارج از بدنه اصلی قرار می‌دهیم تا در هر رندر
 // مجدداً ایجاد نشود — این تغییر اصلی برای حل مشکل پرش فوکوس است.
@@ -43,14 +24,12 @@ const FormField = ({ label, name, children, required = false, icon }) => (
     {children}
   </div>
 );
-
 // ------------------ کمکی: تبدیل ارقام فارسی به انگلیسی ------------------
 const persianToEnglishDigits = (str = "") => {
   if (!str) return "";
   const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
-  const arabicDigits = "٠١٢٣٤٥٦٧٨٩"; // گاهی از عربی-هندی استفاده می‌شود
+  const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
   const englishDigits = "0123456789";
-
   return str
     .split("")
     .map((ch) => {
@@ -62,18 +41,15 @@ const persianToEnglishDigits = (str = "") => {
     })
     .join("");
 };
-
 // فیلتر برای ورودی‌های عدد صحیح (فقط ارقام)
 const filterIntegerInput = (raw) => {
   if (raw == null) return "";
   let v = String(raw);
-  // حذف فاصله و کاراکترهای غیر عددی
   v = v.replace(/\s+/g, "");
   v = persianToEnglishDigits(v);
   v = v.replace(/[^0-9]/g, "");
   return v;
 };
-
 // فیلتر برای ورودی‌های اعشاری (مختصات): اجازه ارقام و یک نقطه
 const filterDecimalInput = (raw) => {
   if (raw == null) return "";
@@ -81,32 +57,27 @@ const filterDecimalInput = (raw) => {
   v = v.replace(/\s+/g, "");
   v = v.replace(/,/g, "."); // اگر کاربر با ویرگول وارد کرد، به نقطه تبدیل شود
   v = persianToEnglishDigits(v);
-  // نگه داشتن فقط ارقام و نقطه
   v = v.replace(/[^0-9.\-]/g, "");
-  // فقط یک نقطه مجاز است
   const parts = v.split(".");
   if (parts.length > 1) {
     v = parts[0] + "." + parts.slice(1).join("");
   }
-  // همچنین اجازه می‌دهیم علامت منفی فقط در ابتدای رشته باشد
   v = v.replace(/(?!^)-/g, "");
   return v;
 };
-
 // =================================================================
 // کامپوننت اصلی
 // =================================================================
 export default function StepPropertyBoundariesInfo({ next, back }) {
-  const dispatch = useDispatch();
-
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    iconFix(); // اعمال فیکس آیکون نقشه هنگام لود
+    setIsMounted(true);
   }, []);
-
+  const dispatch = useDispatch();
   const boundariesDraft = useSelector(
     (state) => state.propertyDraft.boundaries
   );
-
   const [form, setForm] = useState({
     boundaryStatus: boundariesDraft?.boundaryStatus || "",
     coordinatesX:
@@ -123,42 +94,31 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
     approvedBufferArea: boundariesDraft?.approvedBufferArea ?? "",
     notes: boundariesDraft?.notes || "",
   });
-
-  // --- استیت مربوط به مدال نقشه ---
-  const [isMapOpen, setIsMapOpen] = useState(false);
-
   // تابع مشترک تغییر مقدار ورودی‌ها
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     // اگر چک باکس بود
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
       return;
     }
-
     let newValue = value;
-
     // فیلتر ورودی‌ها بر اساس اسم فیلد
     if (["landArea", "buildingArea", "approvedBufferArea"].includes(name)) {
       newValue = filterIntegerInput(newValue);
     } else if (["coordinatesX", "coordinatesY"].includes(name)) {
       newValue = filterDecimalInput(newValue);
     }
-
     setForm((prev) => ({ ...prev, [name]: newValue }));
   };
-
   // باز کردن مودال
   const openMap = () => {
     setIsMapOpen(true);
   };
-
   // بسته شدن مودال
   const closeMap = () => {
     setIsMapOpen(false);
   };
-
   // تایید انتخاب نقشه
   const confirmMapSelection = (position) => {
     // مقدار را به رشته با 6 رقم اعشار می‌گذاریم (رشته برای کنترل ورودی)
@@ -169,8 +129,8 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
       coordinatesX:
         position.lng != null ? position.lng.toFixed(6) : prev.coordinatesX,
     }));
+    closeMap();
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = {
@@ -190,11 +150,9 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
       approvedBufferArea:
         form.approvedBufferArea !== "" ? Number(form.approvedBufferArea) : null,
     };
-
     dispatch(setBoundaries(payload));
     next();
   };
-
   const handleBack = () => {
     // قبل از بازگشت، نسخهٔ رشته‌ای را هم ذخیره کنیم تا ورودی‌ها حفظ شوند
     dispatch(
@@ -205,6 +163,15 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
     );
     back();
   };
+
+  const Map = useMemo(
+    () =>
+      dynamic(() => import("../Map"), {
+        ssr: false,
+        loading: () => <p>در حال بارگذاری نقشه...</p>,
+      }),
+    []
+  );
 
   return (
     <>
@@ -230,7 +197,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
               <option value="تحدید حدود نشده">تحدید حدود نشده</option>
             </select>
           </FormField>
-
           <FormField label="مرجع نقشه" name="mapProvider">
             <select
               name="mapProvider"
@@ -271,7 +237,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
               انتخاب از روی نقشه
             </button>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField label="مختصات X (طول جغرافیایی)" name="coordinatesX">
               {/* از type=text استفاده می‌کنیم تا کنترل کامل رشته و نگهداری کرسر داشته باشیم */}
@@ -287,7 +252,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
                 dir="ltr"
               />
             </FormField>
-
             <FormField label="مختصات Y (عرض جغرافیایی)" name="coordinatesY">
               <input
                 type="text"
@@ -317,7 +281,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
                 placeholder="مثلاً خیابان اصلی"
               />
             </FormField>
-
             <FormField label="حد جنوبی" name="south" icon="⬇️">
               <input
                 name="south"
@@ -327,7 +290,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
                 placeholder="مثلاً ملک مجاور"
               />
             </FormField>
-
             <FormField label="حد شرقی" name="east" icon="➡️">
               <input
                 name="east"
@@ -337,7 +299,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
                 placeholder="مثلاً دیوار مشترک"
               />
             </FormField>
-
             <FormField label="حد غربی" name="west" icon="⬅️">
               <input
                 name="west"
@@ -367,7 +328,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
                 dir="ltr"
               />
             </FormField>
-
             <FormField label="مساحت اعیان (بنا)" name="buildingArea">
               <input
                 type="text"
@@ -381,7 +341,6 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
                 dir="ltr"
               />
             </FormField>
-
             <FormField label="حریم مصوب" name="approvedBufferArea">
               <input
                 type="text"
@@ -425,15 +384,18 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
           </button>
         </div>
       </form>
-
       {/* --- کامپوننت مودال نقشه جدا شده --- */}
-      <LocationMapModal
-        isOpen={isMapOpen}
-        onClose={closeMap}
-        initialLat={form.coordinatesY}
-        initialLng={form.coordinatesX}
-        onConfirm={confirmMapSelection}
-      />
+      {/* فقط در کلاینت رندر شود */}
+      {isMounted && isMapOpen && (
+        <Map
+          isOpen={isMapOpen}
+          onClose={closeMap}
+          onConfirm={confirmMapSelection}
+          initialLat={form.coordinatesY || 0}
+          initialLng={form.coordinatesX || 0}
+          mapProvider={form.mapProvider}
+        />
+      )}
     </>
   );
 }

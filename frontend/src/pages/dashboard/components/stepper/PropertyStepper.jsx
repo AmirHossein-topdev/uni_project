@@ -24,9 +24,17 @@ const steps = [
 
 export default function PropertyStepper() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [completed, setCompleted] = useState(
+    new Array(steps.length).fill(false)
+  );
 
   // حرکت به قدم بعدی
   const next = () => {
+    setCompleted((prev) => {
+      const newCompleted = [...prev];
+      newCompleted[currentStep] = true;
+      return newCompleted;
+    });
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
@@ -40,7 +48,11 @@ export default function PropertyStepper() {
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow ">
       {/* نشانگر مرحله */}
-      <StepIndicator currentStep={currentStep} />
+      <StepIndicator
+        currentStep={currentStep}
+        completed={completed}
+        setCurrentStep={setCurrentStep}
+      />
 
       {/* Step فعلی */}
       <StepComponent next={next} back={back} />
