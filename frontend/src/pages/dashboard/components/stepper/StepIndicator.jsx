@@ -20,7 +20,7 @@ export default function StepIndicator({
   setCurrentStep,
 }) {
   return (
-    <div className="w-full py-5 px-4 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-gray-100 mb-10 overflow-x-auto">
+    <div className="w-full py-5 px-4 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-gray-100 mb-5 overflow-x-auto">
       <div className="flex items-start min-w-[800px] justify-between relative px-2">
         {stepsConfig.map((step, index) => {
           const isCompleted = completed[index];

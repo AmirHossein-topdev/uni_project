@@ -3,17 +3,12 @@ const express = require("express");
 const router = express.Router();
 const RoleController = require("../controller/role.controller");
 
-// Middleware placeholder برای احراز هویت و بررسی دسترسی
+// Middleware placeholder
 const authMiddleware = (req, res, next) => {
-  // اینجا می‌تونی JWT یا session validation بذاری
-  // req.user = decoded user
   next();
 };
 
 const roleMiddleware = (roles) => (req, res, next) => {
-  // اینجا بررسی کن req.user.role در roles باشه
-  // اگر نبود:
-  // return res.status(403).json({ success: false, message: "Forbidden" });
   next();
 };
 
@@ -25,11 +20,19 @@ router.post(
   RoleController.createRole
 );
 
+// لیست نقش‌ها (باید قبل از :id بیاد)
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  RoleController.listRoles
+);
+
+// دریافت نقش با نام (باید قبل از :id)
+router.get("/name/:name", authMiddleware, RoleController.getRoleByName);
+
 // دریافت نقش با آی‌دی
 router.get("/:id", authMiddleware, RoleController.getRoleById);
-
-// دریافت نقش با نام
-router.get("/name/:name", authMiddleware, RoleController.getRoleByName);
 
 // آپدیت نقش
 router.put(
@@ -37,14 +40,6 @@ router.put(
   authMiddleware,
   roleMiddleware(["admin"]),
   RoleController.updateRole
-);
-
-// حذف نقش
-router.delete(
-  "/:id",
-  authMiddleware,
-  roleMiddleware(["admin"]),
-  RoleController.deleteRole
 );
 
 // تغییر وضعیت نقش
@@ -55,12 +50,12 @@ router.patch(
   RoleController.changeRoleStatus
 );
 
-// لیست نقش‌ها با فیلتر و pagination
-router.get(
-  "/",
+// حذف نقش
+router.delete(
+  "/:id",
   authMiddleware,
   roleMiddleware(["admin"]),
-  RoleController.listRoles
+  RoleController.deleteRole
 );
 
 module.exports = router;

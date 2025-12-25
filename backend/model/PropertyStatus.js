@@ -26,7 +26,7 @@ const propertyBasicStatusSchema = mongoose.Schema(
 
     // کد شناسایی ملک (شماره پرونده)
     propertyIdCode: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
     },

@@ -3,23 +3,42 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setStatus } from "@/redux/features/propertyDraftSlice";
+import {
+  FileText,
+  Layers,
+  Hash,
+  ClipboardList,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+} from "lucide-react";
 
-// استایل پایه برای تمام ورودی‌ها و Select ها
-const inputBaseClasses =
-  "p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out w-full bg-white text-gray-800 shadow-sm";
+// استایل‌های مشترک سبک X1
+const inputClasses =
+  "w-full p-3.5 rounded-2xl border-2 border-slate-100 bg-white/50 text-slate-700 shadow-sm transition-all duration-300 outline-none focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-50/50 placeholder:text-slate-400 font-medium";
 
-// استایل برای چک‌باکس‌ها
-const checkboxBaseClasses =
-  "form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition duration-150 ease-in-out cursor-pointer";
+const SectionTitle = ({ icon: Icon, title }) => (
+  <div className="flex items-center gap-3 mb-6">
+    <div className="p-2.5 bg-blue-50 rounded-xl text-blue-600 shadow-sm">
+      <Icon size={22} />
+    </div>
+    <h3 className="text-lg font-black text-slate-800 tracking-tight">
+      {title}
+    </h3>
+    <div className="flex-1 h-px bg-gradient-to-r from-slate-100 to-transparent"></div>
+  </div>
+);
 
-// کامپوننت FormInput رو خارج از بدنه اصلی کامپوننت تعریف می‌کنیم تا هر بار re-render نشه
 const FormInput = ({ label, name, children, required = false }) => (
-  <div className="flex flex-col space-y-1">
-    <label htmlFor={name} className="text-sm font-medium text-gray-700">
+  <div className="flex flex-col space-y-2 group">
+    <label
+      htmlFor={name}
+      className="text-sm font-bold text-slate-600 px-1 transition-colors group-focus-within:text-blue-600"
+    >
       {label}
-      {required && <span className="text-red-500 pr-1">*</span>}
+      {required && <span className="text-red-500 mr-1">*</span>}
     </label>
-    {children}
+    <div className="relative">{children}</div>
   </div>
 );
 
@@ -36,15 +55,13 @@ export default function StepPropertyStatus({ next, back }) {
     propertyNumber: draft?.propertyNumber || "",
   });
 
-  // state برای نگهداری enum ها
   const [caseStatusOptions, setCaseStatusOptions] = useState([]);
   const [isLoadingEnums, setIsLoadingEnums] = useState(true);
 
-  // گرفتن enum ها از سرور
   useEffect(() => {
     async function fetchEnums() {
       try {
-        const res = await fetch("/api/property-enums"); // API که enum ها رو برمیگردونه
+        const res = await fetch("/api/property-enums");
         const data = await res.json();
         setCaseStatusOptions(data.caseStatus || []);
       } catch (err) {
@@ -56,32 +73,24 @@ export default function StepPropertyStatus({ next, back }) {
     fetchEnums();
   }, []);
 
-  // تابع کمکی برای تبدیل ارقام فارسی به انگلیسی
   const persianToEnglishDigits = (str) => {
     const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
     const englishDigits = "0123456789";
-    return str.replace(
-      /[۰-۹]/g,
-      (d) => englishDigits[persianDigits.indexOf(d)]
-    );
+    return str
+      .toString()
+      .replace(/[۰-۹]/g, (d) => englishDigits[persianDigits.indexOf(d)]);
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let newValue = type === "checkbox" ? checked : value;
 
-    // برای فیلدهای عددی: فقط ارقام (فارسی یا انگلیسی) قبول کن و به انگلیسی تبدیل کن
     if (["arsehNumber", "propertyIdCode", "propertyNumber"].includes(name)) {
-      // فیلتر فقط ارقام (فارسی یا انگلیسی)
       newValue = newValue.replace(/[^۰-۹0-9]/g, "");
-      // تبدیل به انگلیسی
       newValue = persianToEnglishDigits(newValue);
     }
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
+    setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
   const handleSubmit = (e) => {
@@ -89,7 +98,6 @@ export default function StepPropertyStatus({ next, back }) {
     dispatch(
       setStatus({
         ...form,
-        // تبدیل به عدد قبل از ذخیره (حالا که value همیشه string انگلیسی عددی هست)
         arsehNumber: form.arsehNumber ? Number(form.arsehNumber) : null,
         propertyIdCode: form.propertyIdCode
           ? Number(form.propertyIdCode)
@@ -102,130 +110,169 @@ export default function StepPropertyStatus({ next, back }) {
     next();
   };
 
-  const handleBack = () => {
-    dispatch(setStatus(form));
-    back();
-  };
-
   if (isLoadingEnums)
     return (
-      <div className="flex justify-center items-center h-40">
-        <div className="text-xl font-medium text-blue-600">
-          در حال بارگذاری اطلاعات...
-        </div>
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-bold tracking-tight animate-pulse">
+          در حال فراخوانی اطلاعات...
+        </p>
       </div>
     );
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 p-6 bg-gray-50 rounded-xl shadow-lg"
+      className="w-full max-w-4xl mx-auto bg-white/40 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-white/60 space-y-10 transition-all duration-500"
     >
-      <h2 className="text-2xl font-extrabold text-gray-800 border-b pb-3 mb-4">
-        📄 اطلاعات پایه و ثبتی ملک
-      </h2>
-
-      {/* بخش چک‌باکس‌ها (عرصه و اعیان) */}
-      <div className="flex gap-10 items-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="font-semibold text-gray-700">نوع مالکیت:</div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            name="isArseh"
-            checked={form.isArseh}
-            onChange={handleChange}
-            className={checkboxBaseClasses}
-          />
-          <span className="text-gray-600">عرصه (زمین)</span>
-        </label>
-
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            name="isAyan"
-            checked={form.isAyan}
-            onChange={handleChange}
-            className={checkboxBaseClasses}
-          />
-          <span className="text-gray-600">اعیان (ساختمان)</span>
-        </label>
+      {/* هدر بخش X1 */}
+      <div className="flex items-center gap-5 border-b border-slate-100 pb-6">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-2xl shadow-lg shadow-blue-100 text-white">
+          <FileText size={28} />
+        </div>
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+            اطلاعات پایه و ثبتی
+          </h2>
+          <p className="text-slate-500 text-sm font-medium">
+            وضعیت پرونده و کدهای شناسایی ملک را تعیین کنید
+          </p>
+        </div>
       </div>
 
-      {/* فیلدهای ورودی (چیدمان دو ستونی) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormInput label="وضعیت پرونده" name="caseStatus" required>
-          <select
-            name="caseStatus"
-            value={form.caseStatus}
-            onChange={handleChange}
-            className={inputBaseClasses}
-            required
-          >
-            <option value="">انتخاب کنید</option>
-            {caseStatusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
+      <div className="space-y-10">
+        {/* بخش نوع مالکیت با دکمه‌های شیک‌تر */}
+        <section>
+          <SectionTitle icon={Layers} title="نوع مالکیت ملک" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { id: "isArseh", label: "عرصه (زمین)", icon: "🌱" },
+              { id: "isAyan", label: "اعیان (ساختمان)", icon: "🏢" },
+            ].map((type) => (
+              <label
+                key={type.id}
+                className={`flex items-center justify-between p-5 rounded-3xl border-2 transition-all duration-300 cursor-pointer ${
+                  form[type.id]
+                    ? "bg-blue-50/50 border-blue-500 shadow-md shadow-blue-50"
+                    : "bg-white border-slate-100 hover:border-slate-200"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{type.icon}</span>
+                  <span
+                    className={`font-bold ${
+                      form[type.id] ? "text-blue-700" : "text-slate-600"
+                    }`}
+                  >
+                    {type.label}
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  name={type.id}
+                  checked={form[type.id]}
+                  onChange={handleChange}
+                  className="w-6 h-6 rounded-lg border-2 border-slate-300 text-blue-600 focus:ring-blue-500 transition-all"
+                />
+              </label>
             ))}
-          </select>
-        </FormInput>
+          </div>
+        </section>
 
-        <FormInput label="شماره عرصه (اختیاری)" name="arsehNumber">
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            name="arsehNumber"
-            value={form.arsehNumber}
-            onChange={handleChange}
-            placeholder="مثلاً ۱۲۳۴۵"
-            className={inputBaseClasses}
+        {/* فیلدهای ورودی */}
+        <section>
+          <SectionTitle
+            icon={ClipboardList}
+            title="جزئیات پرونده و کدهای ثبتی"
           />
-        </FormInput>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <FormInput label="وضعیت فعلی پرونده" name="caseStatus" required>
+              <select
+                name="caseStatus"
+                value={form.caseStatus}
+                onChange={handleChange}
+                className={inputClasses}
+                required
+              >
+                <option value="">انتخاب وضعیت...</option>
+                {caseStatusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </FormInput>
 
-        <FormInput label="کد شناسایی ملک" name="propertyIdCode" required>
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            name="propertyIdCode"
-            value={form.propertyIdCode}
-            onChange={handleChange}
-            placeholder="مثلاً ۳۲۴۷۶۸"
-            required
-            className={inputBaseClasses}
-          />
-        </FormInput>
+            <FormInput label="شماره عرصه" name="arsehNumber">
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  name="arsehNumber"
+                  value={form.arsehNumber}
+                  onChange={handleChange}
+                  placeholder="وارد کنید"
+                  className={inputClasses}
+                />
+                <Hash
+                  className="absolute left-4 top-3.5 text-slate-300"
+                  size={18}
+                />
+              </div>
+            </FormInput>
 
-        <FormInput label="کد ملک" name="propertyNumber" required>
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            name="propertyNumber"
-            value={form.propertyNumber}
-            onChange={handleChange}
-            placeholder="مثلاً ۶۷۸"
-            required
-            className={inputBaseClasses}
-          />
-        </FormInput>
+            <FormInput label="کد شناسایی ملک" name="propertyIdCode" required>
+              <input
+                type="text"
+                inputMode="numeric"
+                name="propertyIdCode"
+                value={form.propertyIdCode}
+                onChange={handleChange}
+                placeholder="مثلاً ۳۲۴۷۶۸"
+                required
+                className={inputClasses}
+              />
+            </FormInput>
+
+            <FormInput label="کد ملک" name="propertyNumber" required>
+              <input
+                type="text"
+                inputMode="numeric"
+                name="propertyNumber"
+                value={form.propertyNumber}
+                onChange={handleChange}
+                placeholder="مثلاً ۶۷۸"
+                required
+                className={inputClasses}
+              />
+            </FormInput>
+          </div>
+        </section>
       </div>
 
-      {/* دکمه‌های ناوبری */}
-      <div className="flex justify-between pt-6 border-t mt-6">
+      {/* دکمه‌های ناوبری X1 */}
+      <div className="flex items-center justify-between pt-8 border-t border-slate-100 mt-10">
         <button
           type="button"
-          onClick={handleBack}
-          className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-150"
+          onClick={back}
+          className="group flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border-2 border-slate-100 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-200 transition-all active:scale-95"
         >
-          ➡️ قبلی
+          <ChevronRight
+            size={20}
+            className="transition-transform group-hover:translate-x-1"
+          />
+          مرحله قبلی
         </button>
+
         <button
           type="submit"
-          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150"
+          className="group flex items-center gap-2 px-10 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all active:scale-95"
         >
-          بعدی ⬅️
+          ثبت و مرحله بعدی
+          <ChevronLeft
+            size={20}
+            className="transition-transform group-hover:-translate-x-1"
+          />
         </button>
       </div>
     </form>

@@ -1,58 +1,22 @@
+// routes/property.routes.js
 const express = require("express");
 const router = express.Router();
-const PropertyController = require("../controller/property.controller");
 
-// middleware نمونه (همان استایل Role)
-const authMiddleware = (req, res, next) => next();
-const roleMiddleware = (roles) => (req, res, next) => next();
+const PropertyController = require("../controller/PropertyController");
 
-/* ===== PropertyStatus (اصلی) ===== */
-router.post(
-  "/",
-  authMiddleware,
-  roleMiddleware(["admin"]),
-  PropertyController.createProperty
-);
+router.post("/", PropertyController.createProperty);
+router.get("/", PropertyController.listProperties);
+router.get("/:id", PropertyController.getProperty);
+router.put("/:id", PropertyController.updateProperty);
+router.delete("/:id", PropertyController.deleteProperty);
 
-router.get("/", authMiddleware, PropertyController.listProperties);
+router.put("/:id/identity", PropertyController.upsertIdentity);
+router.put("/:id/location", PropertyController.upsertLocation);
+router.put("/:id/legal", PropertyController.upsertLegal);
+router.put("/:id/ownership", PropertyController.upsertOwnership);
+router.put("/:id/boundaries", PropertyController.upsertBoundaries);
+router.put("/:id/additional", PropertyController.upsertAdditional);
 
-router.get("/:id", authMiddleware, PropertyController.getProperty);
-
-router.put(
-  "/:id",
-  authMiddleware,
-  roleMiddleware(["admin"]),
-  PropertyController.updateProperty
-);
-
-router.delete(
-  "/:id",
-  authMiddleware,
-  roleMiddleware(["admin"]),
-  PropertyController.deleteProperty
-);
-
-/* ===== Sections (one-to-one) ===== */
-router.put("/:id/identity", authMiddleware, PropertyController.upsertIdentity);
-router.put("/:id/location", authMiddleware, PropertyController.upsertLocation);
-router.put("/:id/legal", authMiddleware, PropertyController.upsertLegal);
-router.put(
-  "/:id/ownership",
-  authMiddleware,
-  PropertyController.upsertOwnership
-);
-router.put(
-  "/:id/boundaries",
-  authMiddleware,
-  PropertyController.upsertBoundaries
-);
-router.put(
-  "/:id/additional",
-  authMiddleware,
-  PropertyController.upsertAdditional
-);
-
-/* ===== Full view ===== */
-router.get("/:id/full", authMiddleware, PropertyController.getFullProperty);
+router.get("/:id/full", PropertyController.getFullProperty);
 
 module.exports = router;
