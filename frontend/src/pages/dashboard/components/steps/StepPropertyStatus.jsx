@@ -44,16 +44,30 @@ const FormInput = ({ label, name, children, required = false }) => (
 
 export default function StepPropertyStatus({ next, back }) {
   const dispatch = useDispatch();
-  const draft = useSelector((state) => state.propertyDraft.status);
+  const statusDraft = useSelector((state) => state.propertyDraft.status); // فقط status از redux
 
   const [form, setForm] = useState({
-    isArseh: draft?.isArseh || false,
-    isAyan: draft?.isAyan || false,
-    arsehNumber: draft?.arsehNumber || "",
-    caseStatus: draft?.caseStatus || "",
-    propertyIdCode: draft?.propertyIdCode || "",
-    propertyNumber: draft?.propertyNumber || "",
+    isArseh: false,
+    isAyan: false,
+    arsehNumber: "",
+    caseStatus: "",
+    propertyIdCode: "",
+    propertyNumber: "",
   });
+
+  // وقتی statusDraft تغییر کرد، فرم بروزرسانی بشه
+  useEffect(() => {
+    if (statusDraft) {
+      setForm({
+        isArseh: statusDraft.isArseh || false,
+        isAyan: statusDraft.isAyan || false,
+        arsehNumber: statusDraft.arsehNumber || "",
+        caseStatus: statusDraft.caseStatus || "",
+        propertyIdCode: statusDraft.propertyIdCode || "",
+        propertyNumber: statusDraft.propertyNumber || "",
+      });
+    }
+  }, [statusDraft]);
 
   const [caseStatusOptions, setCaseStatusOptions] = useState([]);
   const [isLoadingEnums, setIsLoadingEnums] = useState(true);
@@ -87,25 +101,26 @@ export default function StepPropertyStatus({ next, back }) {
 
     if (["arsehNumber", "propertyIdCode", "propertyNumber"].includes(name)) {
       newValue = newValue.replace(/[^۰-۹0-9]/g, "");
-      newValue = persianToEnglishDigits(newValue);
+      const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+      const englishDigits = "0123456789";
+      newValue = newValue.replace(
+        /[۰-۹]/g,
+        (d) => englishDigits[persianDigits.indexOf(d)]
+      );
     }
 
     setForm((prev) => {
       let updated = { ...prev, [name]: newValue };
 
-      // منطق برای محدود کردن به یکی: اگر checkbox باشه و چک شده، گزینه مخالف رو false کن
+      // منطق محدود کردن به یکی
       if (type === "checkbox") {
-        if (name === "isArseh" && checked) {
-          updated.isAyan = false;
-        } else if (name === "isAyan" && checked) {
-          updated.isArseh = false;
-        }
+        if (name === "isArseh" && checked) updated.isAyan = false;
+        else if (name === "isAyan" && checked) updated.isArseh = false;
       }
 
       return updated;
     });
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(

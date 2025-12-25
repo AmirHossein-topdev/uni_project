@@ -79,6 +79,7 @@ export default function EditPropertyPage() {
       if (!cleanLegalStatus.noDocumentType)
         delete cleanLegalStatus.noDocumentType;
 
+      // ساخت payload کلی (فقط برای لاگ)
       const payload = {
         status: draft.status,
         identity: draft.identity || {},
@@ -88,22 +89,90 @@ export default function EditPropertyPage() {
         boundaries: draft.boundaries || {},
         additionalInfo: draft.additionalInfo || {},
       };
-
-      const res = await fetch(
-        `http://localhost:7000/api/properties/${propertyId}`,
-        {
-          // <--- id به propertyId تغییر کرد
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
+      console.log(
+        "Payload being sent (summary):",
+        JSON.stringify(payload, null, 2)
       );
 
-      const data = await res.json();
+      // helper برای بررسی خالی بودن آبجکت
+      const hasData = (obj) =>
+        obj &&
+        typeof obj === "object" &&
+        (Array.isArray(obj) ? obj.length > 0 : Object.keys(obj).length > 0);
 
-      if (!res.ok) throw new Error(data?.error || "خطا در بروزرسانی ملک");
+      // 1) آپدیت status -> این روت در سرور شما وجود دارد (PUT /api/properties/:id)
+      if (!propertyId) throw new Error("شناسه ملک موجود نیست");
+      if (hasData(draft.status)) {
+        const resStatus = await fetch(
+          `http://localhost:7000/api/properties/${propertyId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(draft.status),
+          }
+        );
+        const dataStatus = await (resStatus.headers
+          .get("content-type")
+          ?.includes("application/json")
+          ? resStatus.json()
+          : {});
+        if (!resStatus.ok) {
+          throw new Error(
+            `خطا در بروزرسانی status: ${
+              dataStatus?.error || resStatus.statusText || resStatus.status
+            }`
+          );
+        }
+        console.log("Status updated:", dataStatus);
+      }
 
-      // پاک کردن Draft بعد از موفقیت
+      // آرایه‌ی بخش‌ها — key: نام در draft، path: مسیر روی سرور، body: داده‌ای که باید فرستاده شود
+      const sections = [
+        { key: "identity", path: "identity", body: draft.identity },
+        { key: "ownership", path: "ownership", body: draft.ownership },
+        { key: "location", path: "location", body: draft.location },
+        { key: "legalStatus", path: "legal", body: cleanLegalStatus },
+        { key: "boundaries", path: "boundaries", body: draft.boundaries },
+        {
+          key: "additionalInfo",
+          path: "additional",
+          body: draft.additionalInfo,
+        },
+      ];
+
+      // 2) آپدیت/اپسرت بقیه بخش‌ها با upsert endpoint های موجود
+      for (const s of sections) {
+        if (!hasData(s.body)) {
+          console.log(`Skip ${s.key}: no data`);
+          continue;
+        }
+
+        const res = await fetch(
+          `http://localhost:7000/api/properties/${propertyId}/${s.path}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(s.body),
+          }
+        );
+
+        // ممکن است بدنهٔ پاسخ JSON نباشد — ایمن بخوان
+        const resBody = await (res.headers
+          .get("content-type")
+          ?.includes("application/json")
+          ? res.json()
+          : {});
+        if (!res.ok) {
+          throw new Error(
+            `خطا در بخش ${s.key}: ${
+              resBody?.error || res.statusText || res.status
+            }`
+          );
+        }
+        console.log(`Section ${s.key} updated:`, resBody);
+      }
+
+      // اگر به اینجا رسیدیم همه بخش‌ها با موفقیت آپدیت شده‌اند
       dispatch(resetDraft());
 
       await Swal.fire({
