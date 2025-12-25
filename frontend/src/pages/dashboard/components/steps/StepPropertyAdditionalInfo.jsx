@@ -7,7 +7,8 @@ import Swal from "sweetalert2";
 import {
   resetDraft,
   setAdditionalInfo,
-} from "@/redux/features/propertyDraftSlice";
+} from "../../../../redux/features/propertyDraftSlice";
+
 import {
   Info,
   Building2,

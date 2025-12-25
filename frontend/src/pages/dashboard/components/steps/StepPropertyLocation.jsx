@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setLocation } from "@/redux/features/propertyDraftSlice";
-import { useGetLocationEnumsQuery } from "@/redux/features/locationApi";
+import { setLocation } from "../../../../redux/features/propertyDraftSlice";
+import { useGetLocationEnumsQuery } from "../../../../redux/features/locationApi";
 import {
   MapPin,
   Navigation,

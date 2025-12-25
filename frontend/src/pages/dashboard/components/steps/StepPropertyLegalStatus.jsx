@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setLegalStatus } from "@/redux/features/propertyDraftSlice";
+import { setLegalStatus } from "../../../../redux/features/propertyDraftSlice";
 import {
   Scale,
   FileText,

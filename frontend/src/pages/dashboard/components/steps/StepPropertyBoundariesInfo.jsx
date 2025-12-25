@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setBoundaries } from "@/redux/features/propertyDraftSlice";
+import { setBoundaries } from "../../../../redux/features/propertyDraftSlice";
+
 import dynamic from "next/dynamic";
 import {
   Compass,

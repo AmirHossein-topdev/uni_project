@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setOwnership } from "@/redux/features/propertyDraftSlice";
+import { setOwnership } from "../../../../redux/features/propertyDraftSlice";
 import { useCallback } from "react";
 import {
   User,

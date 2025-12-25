@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setStatus } from "@/redux/features/propertyDraftSlice";
+import { setStatus } from "../../../../redux/features/propertyDraftSlice";
 import {
   FileText,
   Layers,
