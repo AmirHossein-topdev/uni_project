@@ -123,20 +123,29 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked, dataset } = e.target;
-    if (dataset.group) {
-      setForm((prev) => ({
-        ...prev,
-        [dataset.group]: {
-          ...prev[dataset.group],
-          [name]: type === "checkbox" ? checked : value,
-        },
-      }));
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
-    }
+    const newValue = type === "checkbox" ? checked : value;
+
+    setForm((prev) => {
+      if (dataset.group) {
+        return {
+          ...prev,
+          [dataset.group]: {
+            ...prev[dataset.group],
+            [name]: newValue,
+          },
+        };
+      } else {
+        return {
+          ...prev,
+          [name]: newValue,
+        };
+      }
+    });
+  };
+
+  // ذخیره در Redux وقتی input blur شد
+  const handleBlur = () => {
+    dispatch(setAdditionalInfo(form));
   };
 
   const handleSubmit = async (e) => {
@@ -280,6 +289,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="buildingArea"
               value={form.buildingArea}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
               placeholder="120"
             />
@@ -290,6 +300,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="landArea"
               value={form.landArea}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
               placeholder="200"
             />
@@ -300,6 +311,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="constructionYear"
               value={form.constructionYear}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
               placeholder="1400"
             />
@@ -310,6 +322,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="numberOfBuildings"
               value={form.numberOfBuildings}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
               placeholder="1"
             />
@@ -320,6 +333,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="subscriptionNumber"
               value={form.subscriptionNumber}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
             />
           </FormField>
@@ -346,6 +360,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
                   data-group="utilities"
                   checked={form.utilities?.[key] || false}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   className="absolute top-3 right-3 w-5 h-5 rounded-md border-2 border-slate-200 text-blue-600 focus:ring-blue-500"
                 />
                 <Icon
@@ -366,6 +381,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
             data-group="utilities"
             value={form.utilities?.otherUtilities || ""}
             onChange={handleChange}
+            onBlur={handleBlur}
             className={inputClasses}
             placeholder="مثلاً فیبر نوری، چاه عمیق و..."
           />
@@ -388,6 +404,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="securityCouncilApproved"
               value={form.securityCouncilApproved}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
             >
               <option value="">انتخاب کنید</option>
@@ -403,6 +420,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="securityLevel"
               value={form.securityLevel}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
             >
               <option value="">انتخاب کنید</option>
@@ -425,6 +443,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="potentialThreats"
               value={form.potentialThreats}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
             />
           </FormField>
@@ -438,6 +457,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               name="environmentValue"
               value={form.environmentValue}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={inputClasses}
             />
           </FormField>
@@ -450,6 +470,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
           name="notes"
           value={form.notes}
           onChange={handleChange}
+          onBlur={handleBlur}
           rows={4}
           className={`${inputClasses} resize-none`}
           placeholder="هرگونه توضیح یا مورد خاص دیگر را در اینجا بنویسید..."

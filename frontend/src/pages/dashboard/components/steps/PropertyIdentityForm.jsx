@@ -114,7 +114,14 @@ export default function PropertyIdentityForm({ next, back }) {
       newValue = persianToEnglishDigits(newValue);
     }
 
-    setForm((prev) => ({ ...prev, [name]: newValue }));
+    setForm((prev) => {
+      const updated = { ...prev, [name]: value };
+
+      // ⭐ همزمان آپدیت Redux
+      dispatch(setIdentity(updated));
+
+      return updated;
+    });
   };
 
   const handleSubmit = (e) => {

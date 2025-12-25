@@ -112,15 +112,19 @@ export default function StepPropertyStatus({ next, back }) {
     setForm((prev) => {
       let updated = { ...prev, [name]: newValue };
 
-      // منطق محدود کردن به یکی
+      // منطق محدود کردن checkboxها به یکی
       if (type === "checkbox") {
         if (name === "isArseh" && checked) updated.isAyan = false;
         else if (name === "isAyan" && checked) updated.isArseh = false;
       }
 
+      // همزمان آپدیت Redux
+      dispatch(setStatus(updated));
+
       return updated;
     });
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(

@@ -69,10 +69,6 @@ export default function EditPropertyPage() {
     fetchProperty();
   }, [propertyId, dispatch]);
 
-  // قبل از handleSubmit
-  saveCurrentStep();
-  handleSubmit();
-
   // ارسال نهایی و بروزرسانی ملک
   const handleSubmit = async () => {
     try {
@@ -213,7 +209,8 @@ export default function EditPropertyPage() {
         <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
           <h1 className="text-2xl font-bold mb-6">ویرایش ملک</h1>
           {/* Stepper فرم */}
-          <PropertyStepper />{" "}
+          <PropertyStepper onSubmit={handleSubmit} />
+
           {/* <--- propها رو برداشتم چون لازم نیستن، اما اگر لازم داری، در فایل بعدی تعریف کن */}
           {/* دکمه نهایی ثبت و بروزرسانی */}
           <div className="mt-6 flex justify-end gap-4">

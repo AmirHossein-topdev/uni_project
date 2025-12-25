@@ -150,7 +150,14 @@ export default function StepPropertyLegalStatus({ next, back }) {
       newValue = newValue.replace(/[^۰-۹0-9]/g, "");
       newValue = persianToEnglishDigits(newValue);
     }
-    setForm((p) => ({ ...p, [name]: newValue }));
+    setForm((prev) => {
+      const updated = { ...prev, [name]: value };
+
+      // ⭐ همزمان آپدیت Redux
+      dispatch(setLegalStatus(updated));
+
+      return updated;
+    });
   };
 
   const handleJalaliDateChange = (e) => {

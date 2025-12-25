@@ -102,16 +102,26 @@ const StepPropertyLocation = ({ next, back }) => {
       "sectionPlate",
       "pieceNumber",
     ];
+
     if (numericFields.includes(name)) {
       newValue = newValue.replace(/[^۰-۹0-9]/g, "");
       newValue = persianToEnglishDigits(newValue);
     }
 
-    if (name === "province") {
-      setForm((p) => ({ ...p, province: newValue, city: "" }));
-      return;
-    }
-    setForm((p) => ({ ...p, [name]: newValue }));
+    setForm((prev) => {
+      let updated;
+
+      if (name === "province") {
+        updated = { ...prev, province: newValue, city: "" };
+      } else {
+        updated = { ...prev, [name]: newValue };
+      }
+
+      // همزمان آپدیت Redux
+      dispatch(setLocation(updated));
+
+      return updated;
+    });
   };
 
   const submit = (e) => {

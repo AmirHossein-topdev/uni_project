@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setOwnership } from "@/redux/features/propertyDraftSlice";
+import { useCallback } from "react";
 import {
   User,
   ShieldCheck,
@@ -87,8 +88,30 @@ export default function StepPropertyOwnership({ next, back }) {
   }, [ownershipDraft]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked, dataset } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+
+    setForm((prev) => {
+      if (dataset.group) {
+        return {
+          ...prev,
+          [dataset.group]: {
+            ...prev[dataset.group],
+            [name]: newValue,
+          },
+        };
+      } else {
+        return {
+          ...prev,
+          [name]: newValue,
+        };
+      }
+    });
+  };
+
+  // ذخیره در Redux وقتی input blur شد
+  const handleBlur = () => {
+    dispatch(setOwnership(form));
   };
 
   const handleSubmit = (e) => {
@@ -142,6 +165,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="ownerName"
                 value={form.ownerName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
                 placeholder="مثال: محمد محمدی"
                 required
@@ -153,6 +177,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="ownerType"
                 value={form.ownerType}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
                 required
               >
@@ -169,6 +194,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="ownershipStatus"
                 value={form.ownershipStatus}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
                 required
               >
@@ -188,6 +214,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="ownershipConfirmedStatus"
                 value={form.ownershipConfirmedStatus}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
               >
                 {enums.ownershipConfirmedStatus?.map((val) => (
@@ -203,6 +230,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="ownershipAmount"
                 value={form.ownershipAmount}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
                 placeholder="مثلاً: ۶ دانگ تمام"
               />
@@ -219,6 +247,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="possessorType"
                 value={form.possessorType}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
               >
                 {enums.possessorType?.map((val) => (
@@ -234,6 +263,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="possessorName"
                 value={form.possessorName}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
                 placeholder="نام شخص یا نهاد"
               />
@@ -245,6 +275,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 type="number"
                 value={form.possessionYear}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
                 placeholder="۱۳۸۰"
               />
@@ -255,6 +286,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="possessionReason"
                 value={form.possessionReason}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
               >
                 {enums.possessionReason?.map((val) => (
@@ -270,6 +302,7 @@ export default function StepPropertyOwnership({ next, back }) {
                 name="dispute"
                 value={form.dispute}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={inputClasses}
               >
                 {enums.dispute?.map((val) => (
@@ -292,6 +325,7 @@ export default function StepPropertyOwnership({ next, back }) {
                   name="disputeParty"
                   value={form.disputeParty}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   className={inputClasses}
                 >
                   {enums.disputeParty?.map((val) => (
@@ -307,6 +341,7 @@ export default function StepPropertyOwnership({ next, back }) {
                   name="disputePossessorName"
                   value={form.disputePossessorName}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   className={inputClasses}
                   placeholder="نام مدعی"
                 />

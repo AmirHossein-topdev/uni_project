@@ -126,30 +126,49 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let newValue;
+
     if (type === "checkbox") {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-      return;
-    }
-    let newValue = value;
-    if (["landArea", "buildingArea", "approvedBufferArea"].includes(name)) {
-      newValue = filterIntegerInput(newValue);
+      newValue = checked;
+    } else if (
+      ["landArea", "buildingArea", "approvedBufferArea"].includes(name)
+    ) {
+      newValue = filterIntegerInput(value);
     } else if (["coordinatesX", "coordinatesY"].includes(name)) {
-      newValue = filterDecimalInput(newValue);
+      newValue = filterDecimalInput(value);
+    } else {
+      newValue = value;
     }
-    setForm((prev) => ({ ...prev, [name]: newValue }));
+
+    setForm((prev) => {
+      const updated = { ...prev, [name]: newValue };
+
+      // همزمان آپدیت Redux
+      dispatch(setBoundaries(updated));
+
+      return updated;
+    });
   };
 
   const openMap = () => setIsMapOpen(true);
   const closeMap = () => setIsMapOpen(false);
 
   const confirmMapSelection = (position) => {
-    setForm((prev) => ({
-      ...prev,
-      coordinatesY:
-        position.lat != null ? position.lat.toFixed(6) : prev.coordinatesY,
-      coordinatesX:
-        position.lng != null ? position.lng.toFixed(6) : prev.coordinatesX,
-    }));
+    setForm((prev) => {
+      const updated = {
+        ...prev,
+        coordinatesY:
+          position.lat != null ? position.lat.toFixed(6) : prev.coordinatesY,
+        coordinatesX:
+          position.lng != null ? position.lng.toFixed(6) : prev.coordinatesX,
+      };
+
+      // همزمان آپدیت Redux
+      dispatch(setBoundaries(updated));
+
+      return updated;
+    });
+
     closeMap();
   };
 
