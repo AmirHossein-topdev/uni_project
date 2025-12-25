@@ -69,6 +69,10 @@ export default function EditPropertyPage() {
     fetchProperty();
   }, [propertyId, dispatch]);
 
+  // قبل از handleSubmit
+  saveCurrentStep();
+  handleSubmit();
+
   // ارسال نهایی و بروزرسانی ملک
   const handleSubmit = async () => {
     try {
