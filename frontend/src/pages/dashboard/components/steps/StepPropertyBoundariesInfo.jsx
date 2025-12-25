@@ -205,18 +205,14 @@ export default function StepPropertyBoundariesInfo({ next, back }) {
     back();
   };
 
-  const Map = useMemo(
-    () =>
-      dynamic(() => import("../Map"), {
-        ssr: false,
-        loading: () => (
-          <div className="p-4 bg-blue-50 rounded-xl animate-pulse text-blue-600 font-bold">
-            در حال بارگذاری نقشه...
-          </div>
-        ),
-      }),
-    []
-  );
+  const Map = dynamic(() => import("../Map"), {
+    ssr: false,
+    loading: () => (
+      <div className="p-4 bg-blue-50 rounded-xl animate-pulse text-blue-600 font-bold">
+        در حال بارگذاری نقشه...
+      </div>
+    ),
+  });
 
   return (
     <>
