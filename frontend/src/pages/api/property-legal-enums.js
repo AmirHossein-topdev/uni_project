@@ -9,6 +9,7 @@ export default function handler(req, res) {
       legalStatus: schema.path("legalStatus").enumValues,
       officialDocumentType: schema.path("officialDocumentType").enumValues,
       ordinaryDocumentType: schema.path("ordinaryDocumentType").enumValues,
+      definiteDocumentType: schema.path("definiteDocumentType").enumValues,
       noDocumentType: schema.path("noDocumentType").enumValues,
       transferMethod: schema.path("transferMethod").enumValues,
     });

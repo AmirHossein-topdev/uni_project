@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import {
   resetDraft,
@@ -24,6 +25,7 @@ import {
   ChevronRight,
   Loader2,
   Layers,
+  Router,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -69,6 +71,7 @@ const SectionHeader = ({ icon: Icon, title, subtitle }) => (
 
 export default function StepPropertyAdditionalInfo({ next, back }) {
   const dispatch = useDispatch();
+  const router = useRouter();
   const draft = useSelector((state) => state.propertyDraft);
 
   const additionalDraft = useSelector(
@@ -142,6 +145,16 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
     // ذخیره آخرین مرحله در draft
     dispatch(setAdditionalInfo(form));
 
+    const cleanLegalStatus = { ...(draft.legalStatus || {}) };
+
+    if (!cleanLegalStatus.ordinaryDocumentType) {
+      delete cleanLegalStatus.ordinaryDocumentType;
+    }
+
+    if (!cleanLegalStatus.noDocumentType) {
+      delete cleanLegalStatus.noDocumentType;
+    }
+
     const payload = {
       status: {
         ...draft.status,
@@ -150,7 +163,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
       },
       identity: draft.identity || {},
       location: draft.location || {},
-      legalStatus: draft.legalStatus || {},
+      legalStatus: cleanLegalStatus,
       ownership: draft.ownership || {},
       boundaries: draft.boundaries || {},
       additionalInfo: form || {},
@@ -192,6 +205,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
         confirmButtonText: "باشه",
       });
 
+      router.push("/dashboard/main/properties");
       // در صورت نیاز به ریدایرکت
       // router.push(`/properties/${data.propertyId}`);
     } catch (err) {

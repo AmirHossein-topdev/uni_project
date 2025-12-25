@@ -57,6 +57,7 @@ export default function StepPropertyOwnership({ next, back }) {
 
         const initialForm = {
           ownerName: ownershipDraft?.ownerName || "",
+          dispute: ownershipDraft?.dispute || "",
           ownerType: ownershipDraft?.ownerType || data.ownerType[0] || "",
           ownershipStatus:
             ownershipDraft?.ownershipStatus || data.ownershipStatus[0] || "",
@@ -179,6 +180,24 @@ export default function StepPropertyOwnership({ next, back }) {
               </select>
             </FormField>
 
+            <FormField
+              label="وضعیت تثبیت مالکیت"
+              name="ownershipConfirmedStatus"
+            >
+              <select
+                name="ownershipConfirmedStatus"
+                value={form.ownershipConfirmedStatus}
+                onChange={handleChange}
+                className={inputClasses}
+              >
+                {enums.ownershipConfirmedStatus?.map((val) => (
+                  <option key={val} value={val}>
+                    {val}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+
             <FormField label="میزان سهم (دانگ)" name="ownershipAmount">
               <input
                 name="ownershipAmount"
@@ -245,39 +264,56 @@ export default function StepPropertyOwnership({ next, back }) {
                 ))}
               </select>
             </FormField>
-          </div>
-        </section>
 
-        {/* بخش سوم: اختلافات حقوقی */}
-        <section>
-          <SectionTitle icon={AlertCircle} title="وضعیت اختلافات" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <FormField label="طرف اختلاف حقوقی" name="disputeParty">
+            <FormField label="معارض" name="dispute">
               <select
-                name="disputeParty"
-                value={form.disputeParty}
+                name="dispute"
+                value={form.dispute}
                 onChange={handleChange}
                 className={inputClasses}
               >
-                {enums.disputeParty?.map((val) => (
+                {enums.dispute?.map((val) => (
                   <option key={val} value={val}>
                     {val}
                   </option>
                 ))}
               </select>
             </FormField>
-
-            <FormField label="نام طرف اختلاف" name="disputePossessorName">
-              <input
-                name="disputePossessorName"
-                value={form.disputePossessorName}
-                onChange={handleChange}
-                className={inputClasses}
-                placeholder="نام مدعی"
-              />
-            </FormField>
           </div>
         </section>
+
+        {/* بخش سوم: اختلافات حقوقی */}
+        {form.dispute !== "ندارد" && (
+          <section>
+            <SectionTitle icon={AlertCircle} title="وضعیت اختلافات" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <FormField label="طرف اختلاف حقوقی" name="disputeParty">
+                <select
+                  name="disputeParty"
+                  value={form.disputeParty}
+                  onChange={handleChange}
+                  className={inputClasses}
+                >
+                  {enums.disputeParty?.map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField label="نام طرف اختلاف" name="disputePossessorName">
+                <input
+                  name="disputePossessorName"
+                  value={form.disputePossessorName}
+                  onChange={handleChange}
+                  className={inputClasses}
+                  placeholder="نام مدعی"
+                />
+              </FormField>
+            </div>
+          </section>
+        )}
       </div>
 
       {/* دکمه‌های ناوبری */}

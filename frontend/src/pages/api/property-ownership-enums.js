@@ -5,6 +5,7 @@ export default async function handler(req, res) {
   const ownershipStatus =
     PropertyOwnership.schema.path("ownershipStatus").enumValues;
   const ownerType = PropertyOwnership.schema.path("ownerType").enumValues;
+  const dispute = PropertyOwnership.schema.path("dispute").enumValues;
   const ownershipConfirmedStatus = PropertyOwnership.schema.path(
     "ownershipConfirmedStatus"
   ).enumValues;
@@ -20,6 +21,7 @@ export default async function handler(req, res) {
     ownershipConfirmedStatus,
     possessorType,
     possessionReason,
+    dispute,
     disputeParty,
   });
 }

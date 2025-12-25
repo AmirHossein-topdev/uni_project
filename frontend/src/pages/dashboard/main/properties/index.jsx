@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import DashboardLayout from "../../layout";
 import Swal from "sweetalert2";
+import PropertyQuickViewModal from "../../components/PropertyQuickViewModal";
 
 // استایل‌های امضای X1
 const glassCard =
@@ -28,7 +29,13 @@ export default function PropertiesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const handleOpenModal = (prop) => {
+    setSelectedProperty(prop);
+    setIsModalOpen(true);
+  };
   const fetchProperties = async () => {
     setLoading(true);
     setError(null);
@@ -275,19 +282,20 @@ export default function PropertiesPage() {
                         {property.caseStatus || "---"}
                       </td>
                       <td className="p-4 flex gap-2">
-                        <button
-                          onClick={() =>
-                            router.push(`/dashboard/properties/${property._id}`)
-                          }
-                          className={`${actionBtn} bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white`}
-                          title="مشاهده جزئیات"
-                        >
-                          <Eye size={18} />
-                        </button>
+                        <div>
+                          {/* دکمه شما در جدول */}
+                          <button
+                            onClick={() => handleOpenModal(property)} // به جای ریدایرکت مستقیم، مودال باز شود
+                            className={`${actionBtn} bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white`}
+                            title="مشاهده سریع"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        </div>
                         <button
                           onClick={() =>
                             router.push(
-                              `/dashboard/properties/${property._id}/edit`
+                              `/dashboard/main/properties/${property._id}/edit`
                             )
                           }
                           className={`${actionBtn} bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white`}
@@ -343,6 +351,12 @@ export default function PropertiesPage() {
           </div>
         )}
       </div>
+      {/* کامپوننت مودال */}
+      <PropertyQuickViewModal
+        property={selectedProperty}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </DashboardLayout>
   );
 }

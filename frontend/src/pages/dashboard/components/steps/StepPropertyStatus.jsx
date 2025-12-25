@@ -90,7 +90,20 @@ export default function StepPropertyStatus({ next, back }) {
       newValue = persianToEnglishDigits(newValue);
     }
 
-    setForm((prev) => ({ ...prev, [name]: newValue }));
+    setForm((prev) => {
+      let updated = { ...prev, [name]: newValue };
+
+      // منطق برای محدود کردن به یکی: اگر checkbox باشه و چک شده، گزینه مخالف رو false کن
+      if (type === "checkbox") {
+        if (name === "isArseh" && checked) {
+          updated.isAyan = false;
+        } else if (name === "isAyan" && checked) {
+          updated.isArseh = false;
+        }
+      }
+
+      return updated;
+    });
   };
 
   const handleSubmit = (e) => {

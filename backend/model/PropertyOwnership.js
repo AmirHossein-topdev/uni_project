@@ -56,16 +56,14 @@ const propertyOwnershipSchema = mongoose.Schema(
     possessionYear: { type: Number }, // سال تصرف
     possessionReason: {
       type: String,
-      enum: [
-        "معارض دارد",
-        "بخشنامه 1600",
-        "مصوبه هیئت وزیران",
-        "اجاره",
-        "سایر",
-        "عدوانی",
-        "ندارد",
-      ],
-      default: "ندارد",
+      enum: ["بخشنامه 1600", "مصوبه هیئت وزیران", "اجاره", "سایر", "عدوانی"],
+      default: "اجاره",
+    },
+
+    dispute: {
+      type: String,
+      enum: ["معارض دارد", "ندارد"],
+      default: "معارض دارد",
     },
 
     // طرف اختلاف

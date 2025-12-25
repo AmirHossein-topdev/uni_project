@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { type } = require("os");
 const { ObjectId } = mongoose.Schema.Types;
 
 const propertyLegalStatusSchema = mongoose.Schema(
@@ -34,6 +35,15 @@ const propertyLegalStatusSchema = mongoose.Schema(
         "هبه نامه",
         "صلح نامه",
         "مبایعه نامه",
+      ],
+    },
+
+    /* =========================
+       نوع سند قطعی
+    ========================= */
+    definiteDocumentType: {
+      type: String,
+      enum: [
         "اجاره نامه- اوقاف و امور خیریه",
         "اجاره نامه - استان قدس رضوی",
         "اجاره نامه - سایر",

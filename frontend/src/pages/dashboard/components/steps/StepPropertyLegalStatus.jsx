@@ -68,6 +68,7 @@ export default function StepPropertyLegalStatus({ next, back }) {
     officialDocumentType: draft?.officialDocumentType || "",
     ordinaryDocumentType: draft?.ordinaryDocumentType || "",
     noDocumentType: draft?.noDocumentType || "",
+    definiteDocumentType: draft?.definiteDocumentType || "",
     nationalPropertyId: draft?.nationalPropertyId ?? "",
     sadaId: draft?.sadaId || "",
     registrationNumber: draft?.registrationNumber || "",
@@ -95,6 +96,7 @@ export default function StepPropertyLegalStatus({ next, back }) {
   const [enums, setEnums] = useState({
     legalStatus: [],
     officialDocumentType: [],
+    definiteDocumentType: [],
     ordinaryDocumentType: [],
     noDocumentType: [],
     transferMethod: [],
@@ -114,8 +116,12 @@ export default function StepPropertyLegalStatus({ next, back }) {
           officialDocumentType: data.officialDocumentType || [],
           ordinaryDocumentType: data.ordinaryDocumentType || [],
           noDocumentType: data.noDocumentType || [],
+          definiteDocumentType: data.definiteDocumentType || [],
           transferMethod: data.transferMethod || [],
         });
+        console.log("====================================");
+        console.log(data);
+        console.log("====================================");
       } catch (err) {
         console.error("خطا در دریافت enumها:", err);
       } finally {
@@ -149,27 +155,57 @@ export default function StepPropertyLegalStatus({ next, back }) {
 
   const handleJalaliDateChange = (e) => {
     const { name, value } = e.target;
-    let v = value.replace(/[^\d/]/g, "");
-    if (v.length > 10) v = v.slice(0, 10);
-    setForm((prev) => ({ ...prev, [name]: v }));
+
+    // فقط عدد
+    let digits = value.replace(/\D/g, "").slice(0, 8);
+
+    let formatted = digits;
+
+    if (digits.length > 4) {
+      formatted = digits.slice(0, 4) + "/" + digits.slice(4);
+    }
+    if (digits.length > 6) {
+      formatted =
+        digits.slice(0, 4) + "/" + digits.slice(4, 6) + "/" + digits.slice(6);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: formatted,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const payload = {
       ...form,
+
       nationalPropertyId:
         form.nationalPropertyId !== ""
           ? Number(form.nationalPropertyId)
           : undefined,
+
       area: form.area !== "" ? Number(form.area) : undefined,
+
       registrationDate: form.registrationDate
         ? new Date(form.registrationDate)
         : undefined,
+
       noDeedTransferDate: form.noDeedTransferDate
         ? new Date(form.noDeedTransferDate)
         : undefined,
     };
+
+    // ❌ حذف فیلدهای enum اگر خالی هستند
+    if (!payload.ordinaryDocumentType) {
+      delete payload.ordinaryDocumentType;
+    }
+
+    if (!payload.noDocumentType) {
+      delete payload.noDocumentType;
+    }
+
     dispatch(setLegalStatus(payload));
     next();
   };
@@ -231,20 +267,6 @@ export default function StepPropertyLegalStatus({ next, back }) {
               </select>
             </FormField>
 
-            <FormField
-              label="ارجاع به ملک (کد داخلی)"
-              name="property"
-              icon={Fingerprint}
-            >
-              <input
-                name="property"
-                value={form.property}
-                onChange={handleChange}
-                placeholder="شناسه داخلی"
-                className={inputClasses}
-              />
-            </FormField>
-
             {/* فیلدهای شرطی سند */}
             {form.legalStatus === "سند رسمی" && (
               <FormField label="نوع سند رسمی" name="officialDocumentType">
@@ -256,6 +278,25 @@ export default function StepPropertyLegalStatus({ next, back }) {
                 >
                   <option value="">انتخاب نوع سند...</option>
                   {enums.officialDocumentType.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            )}
+
+            {/* فیلدهای شرطی سند */}
+            {form.officialDocumentType === "سند قطعی" && (
+              <FormField label="نوع سند قعطی" name="definiteDocumentType">
+                <select
+                  name="definiteDocumentType"
+                  value={form.definiteDocumentType}
+                  onChange={handleChange}
+                  className={inputClasses}
+                >
+                  <option value="">انتخاب نوع سند...</option>
+                  {enums.definiteDocumentType.map((v) => (
                     <option key={v} value={v}>
                       {v}
                     </option>
@@ -299,77 +340,97 @@ export default function StepPropertyLegalStatus({ next, back }) {
                 </select>
               </FormField>
             )}
+
+            <FormField
+              label="ارجاع به ملک (کد داخلی)"
+              name="property"
+              icon={Fingerprint}
+            >
+              <input
+                name="property"
+                value={form.property}
+                onChange={handleChange}
+                placeholder="شناسه داخلی"
+                className={inputClasses}
+              />
+            </FormField>
           </div>
         </section>
 
         {/* بخش ۲: جزئیات ثبتی */}
-        <section className="bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100">
-          <SectionTitle icon={Layers} title="اطلاعات ثبتی و دفتری" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              label="شناسه ملی ملک"
-              name="nationalPropertyId"
-              icon={Hash}
-            >
-              <input
+        {form.legalStatus !== "فاقد سند" && (
+          <section className="bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100">
+            <SectionTitle icon={Layers} title="اطلاعات ثبتی و دفتری" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormField
+                label="شناسه ملی ملک"
                 name="nationalPropertyId"
-                type="text"
-                inputMode="numeric"
-                value={form.nationalPropertyId}
-                onChange={handleChange}
-                placeholder="فقط ارقام"
-                className={inputClasses}
-              />
-            </FormField>
-            <FormField label="شناسه سادا" name="sadaId" icon={Hash}>
-              <input
-                name="sadaId"
-                value={form.sadaId}
-                onChange={handleChange}
-                placeholder="کد سادا"
-                className={inputClasses}
-              />
-            </FormField>
-            <FormField label="شماره ثبت" name="registrationNumber" icon={Hash}>
-              <input
+                icon={Hash}
+              >
+                <input
+                  name="nationalPropertyId"
+                  type="text"
+                  inputMode="numeric"
+                  value={form.nationalPropertyId}
+                  onChange={handleChange}
+                  placeholder="فقط ارقام"
+                  className={inputClasses}
+                />
+              </FormField>
+              <FormField label="شناسه سادا" name="sadaId" icon={Hash}>
+                <input
+                  name="sadaId"
+                  value={form.sadaId}
+                  onChange={handleChange}
+                  placeholder="کد سادا"
+                  className={inputClasses}
+                />
+              </FormField>
+              <FormField
+                label="شماره ثبت"
                 name="registrationNumber"
-                value={form.registrationNumber}
-                onChange={handleChange}
-                placeholder="مثلاً ۱۲۳/۴"
-                className={inputClasses}
-              />
-            </FormField>
-            <FormField
-              label="تاریخ ثبت"
-              name="registrationDate"
-              icon={Calendar}
-            >
-              <input
+                icon={Hash}
+              >
+                <input
+                  name="registrationNumber"
+                  value={form.registrationNumber}
+                  onChange={handleChange}
+                  placeholder="مثلاً ۱۲۳/۴"
+                  className={inputClasses}
+                />
+              </FormField>
+              <FormField
+                label="تاریخ ثبت"
                 name="registrationDate"
-                value={form.registrationDate}
-                onChange={handleJalaliDateChange}
-                placeholder="۱۴۰۲/۰۱/۰۱"
-                className={inputClasses}
-              />
-            </FormField>
-            <FormField label="شماره دفتر" name="officeNumber">
-              <input
-                name="officeNumber"
-                value={form.officeNumber}
-                onChange={handleChange}
-                className={inputClasses}
-              />
-            </FormField>
-            <FormField label="شماره صفحه" name="pageNumber">
-              <input
-                name="pageNumber"
-                value={form.pageNumber}
-                onChange={handleChange}
-                className={inputClasses}
-              />
-            </FormField>
-          </div>
-        </section>
+                icon={Calendar}
+              >
+                <input
+                  name="registrationDate"
+                  value={form.registrationDate}
+                  onChange={handleJalaliDateChange}
+                  placeholder="۱۴۰۲/۰۱/۰۱"
+                  className={inputClasses}
+                />
+              </FormField>
+              <FormField label="شماره دفتر" name="officeNumber">
+                <input
+                  name="officeNumber"
+                  value={form.officeNumber}
+                  onChange={handleChange}
+                  className={inputClasses}
+                />
+              </FormField>
+              <FormField label="شماره صفحه" name="pageNumber">
+                <input
+                  name="pageNumber"
+                  value={form.pageNumber}
+                  onChange={handleChange}
+                  className={inputClasses}
+                />
+              </FormField>
+            </div>
+          </section>
+        )}
 
         {/* بخش ۳: مشخصات فنی و مالکیت */}
         <section>
@@ -511,9 +572,9 @@ export default function StepPropertyLegalStatus({ next, back }) {
               >
                 <input
                   name="noDeedTransferDate"
-                  type="date"
                   value={form.noDeedTransferDate}
-                  onChange={handleChange}
+                  onChange={handleJalaliDateChange}
+                  placeholder="۱۴۰۲/۰۱/۰۱"
                   className={inputClasses}
                 />
               </FormField>

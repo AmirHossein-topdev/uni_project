@@ -1,3 +1,4 @@
+// frontend\src\pages\dashboard\components\stepper\StepIndicator.jsx
 "use client";
 
 import React from "react";

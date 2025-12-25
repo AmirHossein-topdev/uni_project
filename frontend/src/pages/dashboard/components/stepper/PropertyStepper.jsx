@@ -1,3 +1,4 @@
+// frontend\src\pages\dashboard\components\stepper\PropertyStepper.jsx
 "use client";
 
 import { useState } from "react";
@@ -22,7 +23,8 @@ const steps = [
   StepAdditionalInfo,
 ];
 
-export default function PropertyStepper() {
+export default function PropertyStepper({ draft, isLoading } = {}) {
+  // <--- propها رو optional اضافه کردم، اما اگر استفاده نمی‌کنی، می‌تونی برشون داری
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(
     new Array(steps.length).fill(false)
@@ -44,7 +46,6 @@ export default function PropertyStepper() {
   };
 
   const StepComponent = steps[currentStep];
-
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow ">
       {/* نشانگر مرحله */}
