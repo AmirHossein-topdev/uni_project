@@ -3356,3 +3356,4 @@
 {"doc":{},"level":"debug","message":"MONGO propertyboundariesinfos.findOne","query":{"property":"694d25e7ba5b4238097a2509"},"timestamp":"2025-12-25T23:03:55.353Z"}
 {"doc":{},"level":"debug","message":"MONGO propertyadditionalinfos.findOne","query":{"property":"694d25e7ba5b4238097a2509"},"timestamp":"2025-12-25T23:03:55.568Z"}
 {"level":"info","message":"REQ_FINISH GET /api/properties/694d25e7ba5b4238097a2509/full 4856cb96-1623-4b55-933f-42b675a9463a { statusCode: 304, responseTimeMs: 1194 }","timestamp":"2025-12-25T23:03:55.775Z"}
+{"level":"warn","message":"⚠️ MongoDB disconnected","timestamp":"2025-12-25T23:10:48.747Z"}
