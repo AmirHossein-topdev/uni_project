@@ -152,13 +152,13 @@ export default function PropertyQuickViewModal({ property, isOpen, onClose }) {
                         {key === "water"
                           ? "آب شهری"
                           : key === "electricity"
-                          ? "برق"
-                          : key === "gas"
-                          ? "گاز"
-                          : "فاضلاب"}
+                            ? "برق"
+                            : key === "gas"
+                              ? "گاز"
+                              : "فاضلاب"}
                       </span>
                     </div>
-                  )
+                  ),
               )}
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function PropertyQuickViewModal({ property, isOpen, onClose }) {
           </div>
           <button
             onClick={() =>
-              (window.location.href = `/dashboard/main/properties/${status?._id}/edit`)
+              (window.location.href = `/dashboard/properties/${status?._id}/edit`)
             }
             className="group flex items-center gap-3 px-8 py-3.5 bg-slate-900 text-white rounded-[1.5rem] text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
           >

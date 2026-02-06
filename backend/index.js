@@ -10,7 +10,6 @@ const connectDB = require("./config/db"); // مسیر فایل کانکت DB (CJ
 
 // --- Routes ---
 const userRoutes = require("./routes/user.routes");
-const roleRoutes = require("./routes/role.routes");
 const propertyRoutes = require("./routes/property.routes");
 const ownerRoutes = require("./routes/owner.routes");
 const contractRoutes = require("./routes/contract.routes");
@@ -60,7 +59,6 @@ connectDB()
 
 // --- API Routes ---
 app.use("/api/users", userRoutes);
-app.use("/api/roles", roleRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/contracts", contractRoutes);

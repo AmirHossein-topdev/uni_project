@@ -63,7 +63,7 @@ export default function StepPropertyLegalStatus({ next, back }) {
   const draft = useSelector((s) => s.propertyDraft.legalStatus);
 
   const [form, setForm] = useState({
-    property: draft?.property || "",
+    property: draft?.property || undefined,
     legalStatus: draft?.legalStatus || "",
     officialDocumentType: draft?.officialDocumentType || "",
     ordinaryDocumentType: draft?.ordinaryDocumentType || "",
@@ -72,9 +72,11 @@ export default function StepPropertyLegalStatus({ next, back }) {
     nationalPropertyId: draft?.nationalPropertyId ?? "",
     sadaId: draft?.sadaId || "",
     registrationNumber: draft?.registrationNumber || "",
-    registrationDate: draft?.registrationDate
-      ? new Date(draft.registrationDate).toISOString().slice(0, 10)
-      : "",
+    registrationDate:
+      draft?.registrationDate &&
+      !isNaN(new Date(draft.registrationDate).getTime())
+        ? new Date(draft.registrationDate).toISOString().slice(0, 10)
+        : "",
     officeNumber: draft?.officeNumber || "",
     pageNumber: draft?.pageNumber || "",
     documentNumber: draft?.documentNumber || "",
@@ -86,13 +88,16 @@ export default function StepPropertyLegalStatus({ next, back }) {
     buyer: draft?.buyer || "",
     transferMethod: draft?.transferMethod || "",
     leadsToNewDeed: !!draft?.leadsToNewDeed,
-    documentFile: draft?.documentFile || "",
     noDeedTransferDate: draft?.noDeedTransferDate
       ? new Date(draft.noDeedTransferDate).toISOString().slice(0, 10)
       : "",
     notes: draft?.notes || "",
+    documentFile: draft?.documentFile || "",
+    documentFileName: draft?.documentFileName || "",
   });
-
+  console.log("====================================");
+  console.log(form);
+  console.log("====================================");
   const [enums, setEnums] = useState({
     legalStatus: [],
     officialDocumentType: [],
@@ -470,19 +475,41 @@ export default function StepPropertyLegalStatus({ next, back }) {
               <input
                 name="ownershipAmount"
                 value={form.ownershipAmount}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // حذف تمام اعداد فارسی و انگلیسی
+                  const cleaned = value.replace(/[0-9۰-۹]/g, "");
+                  handleChange({
+                    target: {
+                      name: "ownershipAmount",
+                      value: cleaned,
+                    },
+                  });
+                }}
                 placeholder="مثلاً شش دانگ"
                 className={inputClasses}
               />
             </FormField>
+
             <FormField label="بخش ثبتی" name="registrationSection">
               <input
                 name="registrationSection"
                 value={form.registrationSection}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // حذف تمام اعداد فارسی و انگلیسی
+                  const cleaned = value.replace(/[0-9۰-۹]/g, "");
+                  handleChange({
+                    target: {
+                      name: "registrationSection",
+                      value: cleaned,
+                    },
+                  });
+                }}
                 className={inputClasses}
               />
             </FormField>
+
             <FormField label="پلاک ثبتی" name="registrationPlate">
               <input
                 name="registrationPlate"
@@ -540,32 +567,49 @@ export default function StepPropertyLegalStatus({ next, back }) {
                 <input
                   type="file"
                   accept=".zip,.rar"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
                     if (!file) return;
+
+                    // 👈 بلافاصله اسم فایل رو نشون بده (قبل از آپلود)
+                    setForm((p) => ({
+                      ...p,
+                      documentFileName: file.name,
+                    }));
+
                     const formData = new FormData();
                     formData.append("documentFile", file);
-                    fetch("/api/upload/upload-document", {
+
+                    const res = await fetch("/api/upload/upload-document", {
                       method: "POST",
                       body: formData,
-                    })
-                      .then((res) => res.json())
-                      .then((data) => {
-                        if (data.success)
-                          setForm((p) => ({
-                            ...p,
-                            documentFile: data.filePath,
-                          }));
-                      });
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                      setForm((p) => ({
+                        ...p,
+                        documentFile: data.filePath, // ذخیره مسیر
+                        documentFileName: data.originalName,
+                      }));
+                    }
                   }}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
+
                 <div
                   className={`${inputClasses} flex items-center justify-between bg-white group-hover/file:border-blue-300 transition-colors`}
                 >
-                  <span className="text-slate-400 truncate max-w-[180px]">
-                    {form.documentFile ? "فایل انتخاب شد" : "بارگذاری فایل..."}
+                  <span
+                    className="text-slate-600 truncate max-w-[180px]"
+                    title={form.documentFileName || ""}
+                  >
+                    {form.documentFileName
+                      ? form.documentFileName
+                      : "بارگذاری فایل..."}
                   </span>
+
                   <UploadCloud className="text-blue-500" size={20} />
                 </div>
               </div>

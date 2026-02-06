@@ -1,3 +1,4 @@
+// frontend\src\redux\features\auth\authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 

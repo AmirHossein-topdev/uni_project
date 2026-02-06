@@ -58,7 +58,7 @@ export default function StepPropertyOwnership({ next, back }) {
 
         const initialForm = {
           ownerName: ownershipDraft?.ownerName || "",
-          dispute: ownershipDraft?.dispute || "",
+          dispute: ownershipDraft?.dispute || undefined,
           ownerType: ownershipDraft?.ownerType || data.ownerType[0] || "",
           ownershipStatus:
             ownershipDraft?.ownershipStatus || data.ownershipStatus[0] || "",
@@ -229,7 +229,16 @@ export default function StepPropertyOwnership({ next, back }) {
               <input
                 name="ownershipAmount"
                 value={form.ownershipAmount}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  // اگر کل مقدار فقط عدد (فارسی یا انگلیسی) بود → نپذیر
+                  const isOnlyNumber = /^[0-9۰-۹\s]+$/.test(value);
+
+                  if (isOnlyNumber) return;
+
+                  handleChange(e);
+                }}
                 onBlur={handleBlur}
                 className={inputClasses}
                 placeholder="مثلاً: ۶ دانگ تمام"

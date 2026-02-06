@@ -1,6 +1,11 @@
+// backend\services\property.service.js
 const PropertyStatus = require("../model/PropertyStatus");
 const PropertyIdentity = require("../model/PropertyIdentity");
-const PropertyLocationInfo = require("../model/PropertyLocationInfo");
+const {
+  PropertyLocationInfo,
+  provinces,
+  citiesByProvince,
+} = require("../model/PropertyLocationInfo");
 const PropertyLegalStatus = require("../model/PropertyLegalStatus");
 const PropertyOwnership = require("../model/PropertyOwnership");
 const PropertyBoundariesInfo = require("../model/PropertyBoundariesInfo");
@@ -17,7 +22,34 @@ const sectionModels = {
 
 /* ===== PropertyStatus ===== */
 exports.createProperty = async (data) => {
-  return await PropertyStatus.create(data);
+  const basicStatusData = data.PropertyBasicStatus;
+  if (!basicStatusData) {
+    throw new Error("داده PropertyBasicStatus موجود نیست");
+  }
+
+  const propertyStatus = await PropertyStatus.create(basicStatusData);
+
+  // ذخیره بخش‌های دیگر اگر در payload موجود باشند
+  const propertyId = propertyStatus._id;
+
+  const sectionsToUpsert = [
+    { modelName: "PropertyIdentity", payload: data.identity },
+    { modelName: "PropertyLocationInfo", payload: data.location },
+    { modelName: "PropertyLegalStatus", payload: data.legalStatus },
+    { modelName: "PropertyOwnership", payload: data.ownership },
+    { modelName: "PropertyBoundariesInfo", payload: data.boundaries },
+    { modelName: "PropertyAdditionalInfo", payload: data.additionalInfo },
+  ];
+
+  await Promise.all(
+    sectionsToUpsert
+      .filter(({ payload }) => payload) // فقط اگر payload موجود باشد
+      .map(({ modelName, payload }) =>
+        exports.upsertSection(propertyId, modelName, payload),
+      ),
+  );
+
+  return propertyStatus;
 };
 
 exports.listProperties = async () => {
@@ -44,8 +76,8 @@ exports.deleteProperty = async (id) => {
   // حذف وابسته‌ها
   await Promise.all(
     Object.values(sectionModels).map((Model) =>
-      Model.findOneAndDelete({ property: id })
-    )
+      Model.findOneAndDelete({ property: id }),
+    ),
   );
 
   return { deleted: true };
@@ -59,7 +91,7 @@ exports.upsertSection = async (propertyId, modelName, payload) => {
   const doc = await Model.findOneAndUpdate(
     { property: propertyId },
     { ...payload, property: propertyId },
-    { new: true, upsert: true }
+    { new: true, upsert: true },
   );
 
   return doc;
@@ -74,7 +106,7 @@ exports.getFullProperty = async (propertyId) => {
     Object.entries(sectionModels).map(async ([key, Model]) => [
       key,
       await Model.findOne({ property: propertyId }),
-    ])
+    ]),
   );
 
   return {

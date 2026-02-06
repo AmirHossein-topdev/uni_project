@@ -1,0 +1,1 @@
+{"level":"error","message":"querySrv ETIMEOUT _mongodb._tcp.uniproject.mv5ljm8.mongodb.net","stack":"Error: querySrv ETIMEOUT _mongodb._tcp.uniproject.mv5ljm8.mongodb.net\n    at QueryReqWrap.onresolve [as oncomplete] (node:internal/dns/promises:294:17)","timestamp":"2026-01-22T12:53:23.810Z"}

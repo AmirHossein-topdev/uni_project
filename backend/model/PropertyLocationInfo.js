@@ -1307,8 +1307,8 @@ const propertyLocationInfoSchema = mongoose.Schema(
     postalCode: {
       type: String,
       trim: true,
-      minlength: 10,
-      maxlength: 10,
+      minlength: 1,
+      maxlength: 100,
     },
 
     /* =========================
@@ -1344,20 +1344,16 @@ const propertyLocationInfoSchema = mongoose.Schema(
       trim: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// const PropertyLocationInfo = mongoose.model(
-//   "PropertyLocationInfo",
-//   propertyLocationInfoSchema
-// );
+const PropertyLocationInfo = mongoose.model(
+  "PropertyLocationInfo",
+  propertyLocationInfoSchema,
+);
 
-// module.exports = PropertyLocationInfo;
 module.exports = {
-  PropertyLocationInfo: mongoose.model(
-    "PropertyLocationInfo",
-    propertyLocationInfoSchema
-  ),
+  PropertyLocationInfo,
   provinces,
   citiesByProvince,
 };

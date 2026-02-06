@@ -154,6 +154,9 @@ const propertyLegalStatusSchema = mongoose.Schema(
       type: String, // مسیر یا URL فایل آپلودی
     },
 
+    documentFileName: {
+      type: String,
+    },
     /* =====================================================
        فیلدهای اختصاصی فاقد سند
     ===================================================== */
@@ -166,12 +169,12 @@ const propertyLegalStatusSchema = mongoose.Schema(
       trim: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const PropertyLegalStatus = mongoose.model(
   "PropertyLegalStatus",
-  propertyLegalStatusSchema
+  propertyLegalStatusSchema,
 );
 
 module.exports = PropertyLegalStatus;

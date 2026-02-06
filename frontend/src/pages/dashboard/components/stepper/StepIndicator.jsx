@@ -97,10 +97,10 @@ export default function StepIndicator({
                     isActive
                       ? "text-blue-600 scale-110"
                       : isCompleted
-                      ? "text-green-600"
-                      : hasError
-                      ? "text-red-500"
-                      : "text-gray-400"
+                        ? "text-green-600"
+                        : hasError
+                          ? "text-red-500"
+                          : "text-gray-400"
                   }`}
                 >
                   {step.label}

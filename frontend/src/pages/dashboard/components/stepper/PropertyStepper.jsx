@@ -26,7 +26,7 @@ const steps = [
 export default function PropertyStepper({ onSubmit }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(
-    new Array(steps.length).fill(false)
+    new Array(steps.length).fill(false),
   );
   const stepRef = useRef(null); // ref برای کامپوننتِ فعلی
 
@@ -58,7 +58,7 @@ export default function PropertyStepper({ onSubmit }) {
       // اگر لازم است خطای محلی مدیریت شود، اینجا قرار بده
       console.error(
         "Error while saving current step before final submit:",
-        err
+        err,
       );
       throw err;
     }
@@ -67,7 +67,7 @@ export default function PropertyStepper({ onSubmit }) {
   const StepComponent = steps[currentStep];
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow ">
+    <div className="max-w-5xl mx-auto p-6 bg-[#ECF6F9] rounded-xl shadow ">
       <StepIndicator
         currentStep={currentStep}
         completed={completed}

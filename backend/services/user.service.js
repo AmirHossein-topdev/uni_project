@@ -1,11 +1,20 @@
-// backend/services/user.service.js
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../model/User");
 
+// نقش‌های مجاز (همسان با enum مدل User)
+const ALLOWED_ROLES = [
+  "Admin",
+  "Manager",
+  "Agent",
+  "Customer Support",
+  "Accountant",
+  "Inspector",
+];
+
 class UserService {
   // =====================================
-  // ✅ ایجاد کاربر جدید با ذخیره ایمیل + عکس
+  // ✅ ایجاد کاربر جدید
   // =====================================
   async createUser(data) {
     try {
@@ -29,12 +38,17 @@ class UserService {
       const emailExist = await User.findOne({ email });
       if (emailExist) throw new Error("Email already exists");
 
-      // **اینجا هش نمیکنیم** — مدل User.pre('save') یکبار هش خواهد کرد
+      // بررسی معتبر بودن role
+      if (role && !ALLOWED_ROLES.includes(role)) {
+        throw new Error("Invalid role");
+      }
+
+      // هش پسورد در model.pre('save') انجام می‌شود
       const user = new User({
         name,
         employeeCode,
         email,
-        password, // plaintext -> model pre('save') will hash it
+        password,
         role,
         contactNumber,
         address,
@@ -50,11 +64,16 @@ class UserService {
   }
 
   // =====================================
-  // ✅ آپدیت کاربر + آپلود تصویر جدید
+  // ✅ آپدیت کاربر
   // =====================================
   async updateUser(id, data) {
     try {
-      // اگر پسورد جدید داده شد → اینجا باید هش شود (findByIdAndUpdate pre('save') را صدا نمیکند)
+      // اعتبارسنجی role
+      if (data.role && !ALLOWED_ROLES.includes(data.role)) {
+        throw new Error("Invalid role");
+      }
+
+      // اگر پسورد جدید ارسال شده → هش شود
       if (data.password) {
         const salt = await bcrypt.genSalt(10);
         data.password = await bcrypt.hash(data.password, salt);
@@ -73,31 +92,45 @@ class UserService {
     }
   }
 
-  // بقیه متدها بدون تغییر
+  // =====================================
+  // ✅ دریافت کاربر با employeeCode
+  // =====================================
   async getUserByEmployeeCode(code) {
-    const user = await User.findOne({ employeeCode: code }).populate("role");
+    const user = await User.findOne({ employeeCode: code });
     if (!user) throw new Error("User not found");
     return user;
   }
 
+  // =====================================
+  // ✅ دریافت کاربر با ID
+  // =====================================
   async getUserById(id) {
-    const user = await User.findById(id).populate("role");
+    const user = await User.findById(id);
     if (!user) throw new Error("User not found");
     return user;
   }
 
+  // =====================================
+  // ✅ حذف کاربر
+  // =====================================
   async deleteUser(id) {
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) throw new Error("User not found");
     return deletedUser;
   }
 
+  // =====================================
+  // ✅ بررسی پسورد
+  // =====================================
   async verifyPassword(user, password) {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) throw new Error("Invalid password");
     return true;
   }
 
+  // =====================================
+  // ✅ تولید توکن ریست رمز عبور
+  // =====================================
   async generatePasswordResetToken(user) {
     const token = crypto.randomBytes(32).toString("hex");
 
@@ -108,6 +141,9 @@ class UserService {
     return token;
   }
 
+  // =====================================
+  // ✅ دریافت کاربر با توکن ریست
+  // =====================================
   async getUserByResetToken(token) {
     const user = await User.findOne({
       passwordResetToken: token,
@@ -118,6 +154,9 @@ class UserService {
     return user;
   }
 
+  // =====================================
+  // ✅ ریست پسورد
+  // =====================================
   async resetPassword(user, newPassword) {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
@@ -129,24 +168,30 @@ class UserService {
     return user;
   }
 
+  // =====================================
+  // ✅ تغییر وضعیت کاربر
+  // =====================================
   async changeUserStatus(id, status) {
     if (!["active", "inactive", "blocked"].includes(status)) {
       throw new Error("Invalid status");
     }
 
     const user = await User.findByIdAndUpdate(id, { status }, { new: true });
+
     if (!user) throw new Error("User not found");
 
     return user;
   }
 
+  // =====================================
+  // ✅ لیست کاربران با فیلتر
+  // =====================================
   async listUsers({ page = 1, limit = 10, status, role }) {
     const query = {};
     if (status) query.status = status;
     if (role) query.role = role;
 
     const users = await User.find(query)
-      .populate("role")
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 });

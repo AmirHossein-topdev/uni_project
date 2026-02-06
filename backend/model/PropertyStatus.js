@@ -1,3 +1,4 @@
+// backend\model\PropertyStatus.js
 const mongoose = require("mongoose");
 
 const propertyBasicStatusSchema = mongoose.Schema(
@@ -33,16 +34,16 @@ const propertyBasicStatusSchema = mongoose.Schema(
 
     // کد ملک
     propertyNumber: {
-      type: Number,
+      type: String,
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const PropertyBasicStatus = mongoose.model(
   "PropertyBasicStatus",
-  propertyBasicStatusSchema
+  propertyBasicStatusSchema,
 );
 
 module.exports = PropertyBasicStatus;

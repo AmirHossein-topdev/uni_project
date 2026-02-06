@@ -1,13 +1,21 @@
-// backend/routes/user.routes.js
 const express = require("express");
 const router = express.Router();
-const Role = require("../model/Role");
 const createUploader = require("../middleware/uploader");
 const UserController = require("../controller/user.controller");
 
 // Middleware ساده (بعداً JWT و نقش‌ها اضافه می‌کنیم)
 const authMiddleware = (req, res, next) => next();
 const roleMiddleware = (roles) => (req, res, next) => next();
+
+// نقش‌های مجاز مطابق enum مدل User
+const ALLOWED_ROLES = [
+  "Admin",
+  "Manager",
+  "Agent",
+  "Customer Support",
+  "Accountant",
+  "Inspector",
+];
 
 // ساخت uploader مخصوص کاربران
 const userUpload = createUploader("users");
@@ -17,15 +25,21 @@ const userUpload = createUploader("users");
 // =======================
 router.post("/", userUpload.single("profileImage"), async (req, res) => {
   try {
-    if (typeof req.body.role === "string") {
-      const roleDoc = await Role.findOne({ name: req.body.role });
-      if (!roleDoc) return res.status(400).json({ message: "Invalid role" });
-      req.body.role = roleDoc._id;
+    // ✅ اعتبارسنجی role (بدون Role model)
+    if (req.body.role && !ALLOWED_ROLES.includes(req.body.role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role",
+      });
     }
+
     await UserController.createUser(req, res);
   } catch (err) {
-    console.error("❌ Error in / POST route:", err.message);
-    res.status(400).json({ success: false, message: err.message });
+    console.error("❌ Error in POST /users:", err.message);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 });
 
@@ -39,17 +53,23 @@ router.put(
   userUpload.single("profileImage"),
   async (req, res) => {
     try {
-      if (typeof req.body.role === "string") {
-        const roleDoc = await Role.findOne({ name: req.body.role });
-        if (!roleDoc) return res.status(400).json({ message: "Invalid role" });
-        req.body.role = roleDoc._id;
+      // ✅ اعتبارسنجی role
+      if (req.body.role && !ALLOWED_ROLES.includes(req.body.role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid role",
+        });
       }
+
       await UserController.updateUser(req, res);
     } catch (err) {
       console.error("❌ Error in PUT /users/:id:", err.message);
-      res.status(400).json({ success: false, message: err.message });
+      res.status(400).json({
+        success: false,
+        message: err.message,
+      });
     }
-  }
+  },
 );
 
 // =======================
@@ -58,7 +78,7 @@ router.put(
 router.get(
   "/employee/:code",
   authMiddleware,
-  UserController.getUserByEmployeeCode
+  UserController.getUserByEmployeeCode,
 );
 
 // =======================
@@ -73,7 +93,7 @@ router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware(["admin"]),
-  UserController.deleteUser
+  UserController.deleteUser,
 );
 
 // =======================
@@ -82,7 +102,7 @@ router.delete(
 router.post(
   "/:id/verify-password",
   authMiddleware,
-  UserController.verifyPassword
+  UserController.verifyPassword,
 );
 
 // =======================
@@ -91,7 +111,7 @@ router.post(
 router.post(
   "/:id/reset-token",
   authMiddleware,
-  UserController.generatePasswordResetToken
+  UserController.generatePasswordResetToken,
 );
 
 // =======================
@@ -106,7 +126,7 @@ router.patch(
   "/:id/status",
   authMiddleware,
   roleMiddleware(["admin"]),
-  UserController.changeUserStatus
+  UserController.changeUserStatus,
 );
 
 // =======================
@@ -116,7 +136,7 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware(["admin"]),
-  UserController.listUsers
+  UserController.listUsers,
 );
 
 module.exports = router;

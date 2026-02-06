@@ -76,7 +76,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
   const draft = useSelector((state) => state.propertyDraft);
 
   const additionalDraft = useSelector(
-    (state) => state.propertyDraft.additionalInfo
+    (state) => state.propertyDraft.additionalInfo,
   );
 
   const [form, setForm] = useState({});
@@ -166,10 +166,13 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
     }
 
     const payload = {
-      status: {
-        ...draft.status,
-        propertyIdCode: String(draft.status?.propertyIdCode || uuidv4()), // به String تبدیل کن
-        propertyNumber: draft.status?.propertyNumber || 0,
+      PropertyBasicStatus: {
+        propertyIdCode: String(draft.status?.propertyIdCode || uuidv4()), // حتما string
+        propertyNumber: Number(draft.status?.propertyNumber || 0), // حتما number
+        isArseh: !!draft.status?.isArseh,
+        isAyan: !!draft.status?.isAyan,
+        arsehNumber: draft.status?.arsehNumber ?? null,
+        caseStatus: draft.status?.caseStatus || "جاری",
       },
       identity: draft.identity || {},
       location: draft.location || {},
@@ -179,8 +182,11 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
       additionalInfo: form || {},
     };
 
-    console.log("📦 Payload ارسال‌شده به بک‌اند:", payload);
-    console.log("Draft قبل از ارسال:", draft);
+    // لاگ قبل ارسال
+    // console.log("📦 FINAL PAYLOAD:", JSON.stringify(payload, null, 2));
+
+    // console.log("📦 Payload ارسال‌شده به بک‌اند:", payload);
+    // console.log("Draft قبل از ارسال:", draft);
 
     try {
       const res = await fetch("http://localhost:7000/api/properties", {
@@ -196,8 +202,8 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
         console.error("❌ پاسخ JSON نیست:", jsonErr);
       }
 
-      console.log("📨 Response status:", res.status);
-      console.log("📨 Response data:", data);
+      // console.log("📨 Response status:", res.status);
+      // console.log("📨 Response data:", data);
 
       if (!res.ok) {
         // اگر خطای مدل Mongoose بود، لاگ کامل را هم چاپ کن
@@ -215,7 +221,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
         confirmButtonText: "باشه",
       });
 
-      router.push("/dashboard/main/properties");
+      router.push("/dashboard/properties");
       // در صورت نیاز به ریدایرکت
       // router.push(`/properties/${data.propertyId}`);
     } catch (err) {
@@ -258,7 +264,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
       onSubmit={handleSubmit}
       className="w-full max-w-4xl mx-auto bg-white/40 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-white/60 space-y-12"
     >
-      <div className="flex items-center gap-5 border-b border-slate-100 pb-6">
+      <div className="flex items-center gap-5 border-b border-slate-100">
         <div className="bg-gradient-to-br from-indigo-500 to-blue-600 p-4 rounded-2xl shadow-lg shadow-indigo-100 text-white">
           <Info size={28} />
         </div>
@@ -273,7 +279,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
       </div>
 
       {/* بخش ۱: مشخصات فنی */}
-      <section>
+      {/* <section>
         <SectionHeader
           icon={Layers}
           title="مشخصات ساختمانی"
@@ -339,10 +345,10 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
             />
           </FormField>
         </div>
-      </section>
+      </section> */}
 
       {/* بخش ۲: انشعابات */}
-      <section className="bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100">
+      <section className="bg-slate-50/50 pb-8 rounded-[2.5rem] border border-slate-100">
         <SectionHeader
           icon={Zap}
           title="وضعیت انشعابات"
@@ -372,7 +378,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
                   {label}
                 </span>
               </label>
-            )
+            ),
           )}
         </div>
         <FormField label="سایر انشعابات و توضیحات" name="otherUtilities">

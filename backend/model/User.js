@@ -43,11 +43,18 @@ const userSchema = mongoose.Schema(
 
     // نقش کاربر (مدیر / کاربر معمولی / ... )
     role: {
-      type: ObjectId,
-      ref: "Role",
-      required: true,
+      type: String,
+      enum: [
+        "Admin",
+        "Manager",
+        "Agent",
+        "Customer Support",
+        "Accountant",
+        "Inspector",
+      ],
+      required: [true, "Role is required"],
+      default: "Manager",
     },
-
     // شماره تماس اختیاری
     contactNumber: {
       type: String,
@@ -81,7 +88,7 @@ const userSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // هش کردن پسورد قبل از ذخیره

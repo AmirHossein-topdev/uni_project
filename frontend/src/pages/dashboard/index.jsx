@@ -8,7 +8,7 @@ const Dashboard = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex" dir="rtl">
+    <div className="flex bg-cyan-900" dir="rtl">
       {/* اطمینان حاصل کنید که کامپوننت‌های Sidebar و AdminHeader 
         در مسیر 'app/dashboard/components/' وجود دارند 
       */}
@@ -19,7 +19,7 @@ const Dashboard = () => {
 
       <main
         id="mainContent"
-        className="flex-1 p-6 bg-cyan-900 text-white min-h-screen lg:mr-56"
+        className="flex-1 p-6 bg-cyan-900 text-white lg:mr-56"
       >
         <AdminHeader onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
         <DashboardPage />

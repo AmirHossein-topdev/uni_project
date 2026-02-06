@@ -1,3 +1,4 @@
+// backend\controller\property.controller.js
 const propertyService = require("../services/property.service");
 
 /* ===== helpers ===== */
@@ -42,7 +43,7 @@ exports.updateProperty = async (req, res) => {
   try {
     const result = await propertyService.updateProperty(
       req.params.id,
-      req.body
+      req.body,
     );
     success(res, result);
   } catch (err) {
@@ -94,7 +95,7 @@ async function sectionHandler(req, res, modelName) {
     const result = await propertyService.upsertSection(
       req.params.id,
       modelName,
-      req.body
+      req.body,
     );
     success(res, result);
   } catch (err) {

@@ -1,3 +1,4 @@
+// frontend\src\pages\dashboard\components\steps\StepPropertyLocation.jsx
 "use client";
 
 import React, { useEffect, useState } from "react";
