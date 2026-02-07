@@ -257,105 +257,206 @@ export default function PropertiesPage() {
 
   const filteredProperties = applySort(afterFilters, appliedSort);
 
-  // --- منطق اکسل (دست‌نخورده و دقیق) ---
   const handleExportExcel = () => {
     if (!Array.isArray(filteredProperties) || filteredProperties.length === 0) {
       Swal.fire({
         icon: "warning",
         title: "هیچ رکوردی پیدا نشد",
-        text: "هیچ رکوردی برای خروجی وجود ندارد.",
         confirmButtonText: "باشه",
         confirmButtonColor: "#1b4965",
       });
       return;
     }
 
-    const rows = filteredProperties.map((p, index) => [
-      index + 1,
-      p.identity?.title || "---",
-      p.createdAt ? new Date(p.createdAt).toLocaleDateString("fa-IR") : "---",
-      p.location?.province || "---",
-      p.location?.city || "---",
-      p.status?.propertyIdCode || "---",
-      p.status?.isAyan ? "✔" : "❌",
-      p.status?.propertyNumber ?? "---",
-      p.identity?.ayanTitle || "---",
-      p.identity?.arsehTitle || "---",
-      p.identity?.propertyType || "---",
-      p.legalStatus?.legalStatus || "---",
-      p.ownership?.ownerName || "---",
-      p.identity?.usageType || "---",
-      p.status?.caseStatus || "---",
-    ]);
+    const formatCellValue = (val) => {
+      if (val === true) return "✓";
+      if (val === false) return "×";
+      if (!val || typeof val === "undefined") return "---";
+      if (
+        typeof val === "string" &&
+        val.includes("T") &&
+        val.includes("Z") &&
+        !isNaN(Date.parse(val))
+      ) {
+        return new Intl.DateTimeFormat("fa-IR").format(new Date(val));
+      }
+      return val;
+    };
 
-    const header = [
-      "شماره",
-      "نام واحد",
-      "تاریخ ایجاد",
-      "نام استان",
-      "نام شهرستان",
-      "کد شناسایی ملک",
-      "اعیان",
-      "کد ملک",
-      "عنوان اعیان",
-      "عنوان عرصه",
-      "نوع ملک",
-      "وضعیت ملک",
-      "مالک",
-      "نوع بهره برداری",
-      "وضعیت پرونده",
-    ];
-
-    const aoa = [header, ...rows];
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const ws = XLSX.utils.aoa_to_sheet([]);
 
-    ws["!rtl"] = true;
+    // فیکس کردن rowIndex دقیقا روی صفر برای شروع از اولین سلول اکسل
+    let rowIndex = 0;
+    const MAX_COLUMNS = 3;
+
+    const firstItem = filteredProperties[0];
+    const propertyName = firstItem.identity?.title || "نامشخص";
+    const persianDate = new Date().toLocaleDateString("fa-IR");
+
+    // ۱. ایجاد کادر سربرگ رسمی (بدون هیچ فاصله قبل از بسمه تعالی)
+    XLSX.utils.sheet_add_aoa(
+      ws,
+      [
+        ["بسمه تعالی"],
+        [""],
+        [
+          "موضوع: گزارش لیست کلی املاک و مستغلات",
+          "",
+          "",
+          "",
+          "تاریخ: " + persianDate,
+        ],
+        [
+          "نوع گزارش: خروجی سیستمی (لیست)",
+          "",
+          "",
+          "",
+          "تعداد رکورد: " + filteredProperties.length,
+        ],
+        [""],
+      ],
+      { origin: "A1" }, // اجبار به شروع دقیق از سلول A1
+    );
+
+    if (!ws["!merges"]) ws["!merges"] = [];
+    ws["!merges"].push(
+      // بسمه
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+
+      // موضوع → از ستون 0 تا 3
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
+
+      // تاریخ → ستون‌های سمت چپ
+      { s: { r: 2, c: 4 }, e: { r: 2, c: 5 } },
+
+      // نوع گزارش → از ستون 0 تا 3
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } },
+
+      // تعداد رکورد → ستون‌های سمت چپ
+      { s: { r: 3, c: 4 }, e: { r: 3, c: 5 } },
+    );
+
+    rowIndex = 5; // تغییر ردیف به سطر بعد از سربرگ (چون سربرگ ۵ سطر اشغال کرده: ۰ تا ۴)
+
+    filteredProperties.forEach((p, index) => {
+      XLSX.utils.sheet_add_aoa(
+        ws,
+        [[`ردیف ${index + 1}: ${p.identity?.title || "بدون نام"}`]],
+        {
+          origin: { r: rowIndex, c: 0 },
+        },
+      );
+      ws["!merges"].push({
+        s: { r: rowIndex, c: 0 },
+        e: { r: rowIndex, c: 5 },
+      });
+      rowIndex++;
+
+      const fields = [
+        ["کد شناسایی", p.status?.propertyIdCode],
+        ["تاریخ ایجاد", p.createdAt],
+        ["استان", p.location?.province],
+        ["شهرستان", p.location?.city],
+        ["اعیان", p.status?.isAyan],
+        ["کد ملک", p.status?.propertyNumber],
+        ["عنوان اعیان", p.identity?.ayanTitle],
+        ["عنوان عرصه", p.identity?.arsehTitle],
+        ["نوع ملک", p.identity?.propertyType],
+        ["وضعیت ملک", p.legalStatus?.legalStatus],
+        ["مالک", p.ownership?.ownerName],
+        ["نوع بهره‌برداری", p.identity?.usageType],
+        ["وضعیت پرونده", p.status?.caseStatus],
+      ];
+
+      for (let i = 0; i < fields.length; i += MAX_COLUMNS) {
+        const rowData = [];
+        const chunk = fields.slice(i, i + MAX_COLUMNS);
+        chunk.forEach(([label, value]) => {
+          rowData.push(label + ":", formatCellValue(value));
+        });
+        XLSX.utils.sheet_add_aoa(ws, [rowData], {
+          origin: { r: rowIndex, c: 0 },
+        });
+        rowIndex++;
+      }
+      rowIndex++;
+    });
+
+    ws["!cols"] = Array(6).fill({ wch: 13 });
+    ws["!rows"] = [];
+    for (let i = 0; i < rowIndex; i++) ws["!rows"][i] = { hpt: 28 };
+    ws["!rows"][0] = { hpt: 40 };
+
     ws["!views"] = [{ RTL: true }];
-    ws["!cols"] = header.map((h, i) => ({ wch: i === 0 ? 8 : 22 }));
-    ws["!rows"] = aoa.map((_, index) => ({ hpt: index === 0 ? 35 : 28 }));
+    ws["!pageSetup"] = {
+      paperSize: 9,
+      orientation: "portrait",
+      fitToWidth: 1,
+      fitToHeight: 0,
+    };
+    ws["!headerFooter"] = { oddFooter: "&Cصفحه &P از &N" };
+    ws["!printOptions"] = { horizontalCentered: true };
+
+    if (!ws["!ref"])
+      ws["!ref"] = XLSX.utils.encode_range({
+        s: { r: 0, c: 0 },
+        e: { r: rowIndex - 1, c: 5 },
+      });
 
     const range = XLSX.utils.decode_range(ws["!ref"]);
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
-        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws[cellRef]) ws[cellRef] = { t: "s", v: "" };
-        const isHeader = R === 0;
-        let bgColor = isHeader ? "014F86" : R % 2 !== 0 ? "F1F8FB" : "FFFFFF";
+        const cell_ref = XLSX.utils.encode_cell({ c: C, r: R });
+        if (!ws[cell_ref]) ws[cell_ref] = { t: "s", v: "" };
 
-        ws[cellRef].s = {
-          font: {
-            name: "Tahoma",
-            sz: isHeader ? 11 : 10,
-            bold: isHeader,
-            color: { rgb: isHeader ? "FFFFFF" : "000000" },
-          },
+        const isBismillah = R === 0;
+        const isMainHeader = ws["!merges"]?.some(
+          (m) => R === m.s.r && C >= m.s.c && C <= m.e.c && R >= 5,
+        );
+
+        ws[cell_ref].s = {
+          font: { name: "Tahoma", sz: 8.5 },
           alignment: {
             horizontal: "center",
             vertical: "center",
             wrapText: true,
-            readingOrder: 2,
           },
-          fill: { patternType: "solid", fgColor: { rgb: bgColor } },
           border: {
-            top: { style: "thin", color: { rgb: "D1E3F0" } },
-            bottom: { style: "thin", color: { rgb: "D1E3F0" } },
-            left: { style: "thin", color: { rgb: "D1E3F0" } },
-            right: { style: "thin", color: { rgb: "D1E3F0" } },
+            top: { style: "thin", color: { rgb: "BDC3C7" } },
+            bottom: { style: "thin", color: { rgb: "BDC3C7" } },
+            left: { style: "thin", color: { rgb: "BDC3C7" } },
+            right: { style: "thin", color: { rgb: "BDC3C7" } },
           },
         };
+
+        if (isBismillah) {
+          ws[cell_ref].s.font = { name: "Tahoma", sz: 12, bold: true };
+          ws[cell_ref].s.border = {};
+        } else if (R < 5) {
+          ws[cell_ref].s.font.bold = true;
+          ws[cell_ref].s.border = {};
+          // اصلاح تراز متن سربرگ بر اساس جابجایی جدید
+          ws[cell_ref].s.alignment.horizontal = C <= 1 ? "right" : "left";
+        } else if (isMainHeader) {
+          ws[cell_ref].s.fill = { fgColor: { rgb: "1B4965" } };
+          ws[cell_ref].s.font = {
+            color: { rgb: "41BDBB" },
+            bold: true,
+            sz: 10,
+          };
+        } else if (C % 2 === 0 && R >= 5) {
+          ws[cell_ref].s.fill = { fgColor: { rgb: "F2FBFA" } };
+          ws[cell_ref].s.font.bold = true;
+          ws[cell_ref].s.font.color = { rgb: "1B4965" };
+        }
       }
     }
 
-    const first = filteredProperties[0];
-    const statusId = first.status?._id || "NoID";
-    const identityTitle = first.identity?.title || "NoTitle";
-    const safeTitle = String(identityTitle).replace(/[/\\?%*:|"<>]/g, "-");
     const fileName =
       filteredProperties.length === 1
-        ? `${statusId}-${safeTitle}.xlsx`
-        : `گزارش_املاک_${new Date().toLocaleDateString("fa-IR").replace(/\//g, "-")}.xlsx`;
-
+        ? `گزارش_تاریخ_${new Date().toLocaleDateString("fa-IR").replace(/\//g, "-")}.xlsx`
+        : `گزارش_رسمی_املاک_${persianDate.replace(/\//g, "-")}.xlsx`;
     XLSX.utils.book_append_sheet(wb, ws, "لیست املاک");
     XLSX.writeFile(wb, fileName);
   };

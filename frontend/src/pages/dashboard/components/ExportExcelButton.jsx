@@ -401,7 +401,7 @@ export default function ExportExcelButton({ data = [] }) {
     const safeTitle = String(propertyName).replace(/[/\\?%*:|"<>]/g, "-");
     const fileName =
       data.length === 1
-        ? `گزارش_ملک_${safeTitle}.xlsx`
+        ? `گزارش_ملک_${safeTitle} تاریخ ${new Date().toLocaleDateString("fa-IR").replace(/\//g, "-")}.xlsx`
         : `گزارش_رسمی_املاک_${persianDate.replace(/\//g, "-")}.xlsx`;
 
     XLSX.utils.book_append_sheet(wb, ws, "جزئیات");
