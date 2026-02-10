@@ -75,7 +75,9 @@ export default function StepPropertyStatus({ next, back }) {
   useEffect(() => {
     async function fetchEnums() {
       try {
-        const res = await fetch("/api/property-enums");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/enums/status`,
+        );
         const data = await res.json();
         setCaseStatusOptions(data.caseStatus || []);
       } catch (err) {
@@ -105,7 +107,7 @@ export default function StepPropertyStatus({ next, back }) {
       const englishDigits = "0123456789";
       newValue = newValue.replace(
         /[۰-۹]/g,
-        (d) => englishDigits[persianDigits.indexOf(d)]
+        (d) => englishDigits[persianDigits.indexOf(d)],
       );
     }
 
@@ -137,7 +139,7 @@ export default function StepPropertyStatus({ next, back }) {
         propertyNumber: form.propertyNumber
           ? Number(form.propertyNumber)
           : null,
-      })
+      }),
     );
     next();
   };

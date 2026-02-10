@@ -95,9 +95,7 @@ export default function StepPropertyLegalStatus({ next, back }) {
     documentFile: draft?.documentFile || "",
     documentFileName: draft?.documentFileName || "",
   });
-  console.log("====================================");
-  console.log(form);
-  console.log("====================================");
+
   const [enums, setEnums] = useState({
     legalStatus: [],
     officialDocumentType: [],
@@ -112,7 +110,9 @@ export default function StepPropertyLegalStatus({ next, back }) {
     let mounted = true;
     async function loadEnums() {
       try {
-        const res = await fetch("/api/property-legal-enums");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/enums/legal`,
+        );
         if (!res.ok) throw new Error("failed to fetch enums");
         const data = await res.json();
         if (!mounted) return;

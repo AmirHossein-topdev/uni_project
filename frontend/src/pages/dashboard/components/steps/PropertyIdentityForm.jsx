@@ -79,7 +79,9 @@ export default function PropertyIdentityForm({ next, back }) {
     async function fetchEnums() {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/property-identity-enums");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/enums/identity`,
+        );
         const data = await res.json();
         setEnums({
           structureType: data.structureType || [],

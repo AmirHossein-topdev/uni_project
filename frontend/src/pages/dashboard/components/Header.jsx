@@ -1,3 +1,4 @@
+// frontend\src\pages\dashboard\components\Header.jsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -36,6 +37,7 @@ export default function Header({ onOpenSidebar }) {
     sessionStorage.clear(); // پاکسازی کامل سشن استوریج
     router.push("/"); // هدایت به صفحه اصلی
   };
+  // frontend\src\pages\dashboard\components\Header.jsx
   // بخش کاربر هدر
   useEffect(() => {
     try {

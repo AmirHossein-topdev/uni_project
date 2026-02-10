@@ -52,7 +52,9 @@ export default function StepPropertyOwnership({ next, back }) {
     async function fetchEnums() {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/property-ownership-enums");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/enums/ownership`,
+        );
         const data = await res.json();
         setEnums(data);
 

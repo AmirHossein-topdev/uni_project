@@ -87,7 +87,9 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
     async function fetchEnums() {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/property-additional-enums");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/enums/additionalinfo`,
+        );
         const data = await res.json();
         setEnums(data);
 
@@ -123,6 +125,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
   }, [additionalDraft]);
 
   const handleChange = (e) => {
+    e.preventDefault();
     const { name, value, type, checked, dataset } = e.target;
     const newValue = type === "checkbox" ? checked : value;
 
@@ -278,75 +281,6 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
         </div>
       </div>
 
-      {/* بخش ۱: مشخصات فنی */}
-      {/* <section>
-        <SectionHeader
-          icon={Layers}
-          title="مشخصات ساختمانی"
-          subtitle="متراژ و اطلاعات فیزیکی بنا"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FormField
-            label="متراژ بنا (متر مربع)"
-            name="buildingArea"
-            icon={Building2}
-          >
-            <input
-              type="number"
-              name="buildingArea"
-              value={form.buildingArea}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-              placeholder="120"
-            />
-          </FormField>
-          <FormField label="متراژ زمین (متر مربع)" name="landArea">
-            <input
-              type="number"
-              name="landArea"
-              value={form.landArea}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-              placeholder="200"
-            />
-          </FormField>
-          <FormField label="سال ساخت" name="constructionYear" icon={Calendar}>
-            <input
-              type="number"
-              name="constructionYear"
-              value={form.constructionYear}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-              placeholder="1400"
-            />
-          </FormField>
-          <FormField label="تعداد ساختمان" name="numberOfBuildings">
-            <input
-              type="number"
-              name="numberOfBuildings"
-              value={form.numberOfBuildings}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-              placeholder="1"
-            />
-          </FormField>
-          <FormField label="شماره اشتراک" name="subscriptionNumber" icon={Hash}>
-            <input
-              type="text"
-              name="subscriptionNumber"
-              value={form.subscriptionNumber}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-            />
-          </FormField>
-        </div>
-      </section> */}
-
       {/* بخش ۲: انشعابات */}
       <section className="bg-slate-50/50 pb-8 rounded-[2.5rem] border border-slate-100">
         <SectionHeader
@@ -422,53 +356,57 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
               ))}
             </select>
           </FormField>
-          <FormField label="سطح حفاظتی" name="securityLevel">
-            <select
-              name="securityLevel"
-              value={form.securityLevel}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-            >
-              <option value="">انتخاب کنید</option>
-              {enums.securityLevel?.map((val) => (
-                <option key={val} value={val}>
-                  {val}
-                </option>
-              ))}
-            </select>
-          </FormField>
+          {form.securityCouncilApproved === "دارد" && (
+            <FormField label="سطح حفاظتی" name="securityLevel">
+              <select
+                name="securityLevel"
+                value={form.securityLevel}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={inputClasses}
+              >
+                <option value="">انتخاب کنید</option>
+                {enums.securityLevel?.map((val) => (
+                  <option key={val} value={val}>
+                    {val}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            label="تهدیدات و آسیب‌پذیری‌ها"
-            name="potentialThreats"
-            icon={AlertTriangle}
-          >
-            <input
-              type="text"
+        {form.securityCouncilApproved === "دارد" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label="تهدیدات و آسیب‌پذیری‌ها"
               name="potentialThreats"
-              value={form.potentialThreats}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-            />
-          </FormField>
-          <FormField
-            label="ارزشمندی محیط"
-            name="environmentValue"
-            icon={TreePine}
-          >
-            <input
-              type="text"
+              icon={AlertTriangle}
+            >
+              <input
+                type="text"
+                name="potentialThreats"
+                value={form.potentialThreats}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={inputClasses}
+              />
+            </FormField>
+            <FormField
+              label="ارزشمندی محیط"
               name="environmentValue"
-              value={form.environmentValue}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={inputClasses}
-            />
-          </FormField>
-        </div>
+              icon={TreePine}
+            >
+              <input
+                type="text"
+                name="environmentValue"
+                value={form.environmentValue}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={inputClasses}
+              />
+            </FormField>
+          </div>
+        )}
       </section>
 
       {/* توضیحات نهایی */}
@@ -492,6 +430,7 @@ export default function StepPropertyAdditionalInfo({ next, back }) {
           className="group flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border-2 border-slate-100 text-slate-600 font-bold hover:bg-slate-50 transition-all active:scale-95"
         >
           <ChevronRight
+            type="button"
             size={20}
             className="transition-transform group-hover:translate-x-1"
           />
