@@ -353,7 +353,7 @@ export default function StepPropertyLegalStatus({ next, back }) {
               </FormField>
             )}
 
-            <FormField
+            {/* <FormField
               label="ارجاع به ملک (کد داخلی)"
               name="property"
               icon={Fingerprint}
@@ -365,7 +365,7 @@ export default function StepPropertyLegalStatus({ next, back }) {
                 placeholder="شناسه داخلی"
                 className={inputClasses}
               />
-            </FormField>
+            </FormField> */}
           </div>
         </section>
 

@@ -4,7 +4,6 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const morgan = require("morgan");
-
 // --- Database ---
 const connectDB = require("./config/db"); // مسیر فایل کانکت DB (CJS)
 
@@ -16,6 +15,7 @@ const contractRoutes = require("./routes/contract.routes");
 const locationEnumsRoutes = require("./routes/locationEnums.routes");
 const authRoutes = require("./routes/auth.routes");
 const uploadRoutes = require("./routes/uploadDocument.routes");
+const enumsRoutes = require("./routes/enums.routes");
 
 // --- Middleware ---
 const globalErrorHandler = require("./middleware/global-error-handler");
@@ -28,23 +28,13 @@ const app = express();
 const PORT = process.env.PORT || 7000;
 
 // --- Basic Middlewares ---
-// CORS
-app.use(cors());
 
-// Body parsers (important: parse body BEFORE requestLogger if you want to log body)
+app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-// Attach a request id for tracing
 app.use(attachRequestId);
-
-// HTTP request logging (morgan)
 app.use(morgan("dev"));
-
-// Custom request logger (will have parsed body available)
 app.use(requestLogger);
-
-// Static folders
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -65,6 +55,9 @@ app.use("/api/contracts", contractRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/location-enums", locationEnumsRoutes);
 app.use("/api/upload", uploadRoutes);
+
+//--------- Enums-----------
+app.use("/api/enums", enumsRoutes);
 
 // --- Root Route ---
 app.get("/", (req, res) => res.send("Server is running successfully"));

@@ -1,3 +1,4 @@
+// backend\services\user.service.js
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../model/User");

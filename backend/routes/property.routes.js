@@ -1,4 +1,6 @@
 // routes/property.routes.js
+const PropertyBasicStatus = require("../model/PropertyStatus");
+
 const express = require("express");
 const router = express.Router();
 
@@ -19,4 +21,13 @@ router.put("/:id/additional", PropertyController.upsertAdditional);
 
 router.get("/:id/full", PropertyController.getFullProperty);
 
+router.get("/enums/case-status", (req, res) => {
+  try {
+    const enumValues = PropertyBasicStatus.schema.path("caseStatus").enumValues;
+
+    res.json({ caseStatus: enumValues });
+  } catch (err) {
+    res.status(500).json({ error: "cannot read enum" });
+  }
+});
 module.exports = router;

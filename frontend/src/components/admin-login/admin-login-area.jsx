@@ -56,13 +56,13 @@ export default function AdminLoginArea() {
 
       {/* 4. هدر معلق */}
       <div className="absolute top-8 left-8 right-8 flex justify-between items-center z-40">
-        <div className="bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-[1.5rem] shadow-sm border border-slate-100 flex items-center gap-4">
+        {/* <div className="bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-[1.5rem] shadow-sm border border-slate-100 flex items-center gap-4">
           <img src="/assets/img/logo.png" className="h-10" alt="Logo" />
           <div className="w-px h-6 bg-slate-200"></div>
           <span className="text-slate-900 font-black text-sm">
             پورتال ادمین
           </span>
-        </div>
+        </div> */}
 
         <div className="hidden md:flex gap-3">
           <ContactPill

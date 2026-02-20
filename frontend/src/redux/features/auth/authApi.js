@@ -29,7 +29,7 @@ export const authApi = apiSlice.injectEndpoints({
               accessToken: result.data.token,
               user: result.data.user,
             }),
-            { expires: 1 }
+            { expires: 1 },
           );
 
           // ذخیره در Redux
@@ -37,7 +37,7 @@ export const authApi = apiSlice.injectEndpoints({
             userLoggedIn({
               accessToken: result.data.token,
               user: result.data.user,
-            })
+            }),
           );
 
           // پیام موفقیت
@@ -67,7 +67,7 @@ export const authApi = apiSlice.injectEndpoints({
           dispatch(
             userLoggedIn({
               user: result.data,
-            })
+            }),
           );
         } catch (err) {
           console.error("Get user failed:", err);
@@ -90,14 +90,14 @@ export const authApi = apiSlice.injectEndpoints({
               accessToken: result.data.token,
               user: result.data.user,
             }),
-            { expires: 0.5 }
+            { expires: 0.5 },
           );
 
           dispatch(
             userLoggedIn({
               accessToken: result.data.token,
               user: result.data.user,
-            })
+            }),
           );
         } catch (err) {
           console.error("Confirm email failed:", err);
@@ -157,14 +157,14 @@ export const authApi = apiSlice.injectEndpoints({
               accessToken: result.data.token,
               user: result.data.user,
             }),
-            { expires: 0.5 }
+            { expires: 0.5 },
           );
 
           dispatch(
             userLoggedIn({
               accessToken: result.data.token,
               user: result.data.user,
-            })
+            }),
           );
         } catch (err) {
           console.error("Update profile failed:", err);
